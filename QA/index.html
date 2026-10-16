@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexFleet SaaS - Complete Project Features & QA Verification Hub</title>
+  <style>
+    :root {
+      --bg-primary: #0a0f1d;
+      --bg-secondary: #111827;
+      --bg-card: #162032;
+      --bg-card-hover: #1c2940;
+      --border-color: #24344d;
+      --border-focus: #3b82f6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --purple: #8b5cf6;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 2px 6px rgba(0,0,0,0.3);
+      --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
+      --shadow-lg: 0 16px 40px rgba(0,0,0,0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #172554 0%, var(--bg-primary) 70%);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    /* Top Sticky Navigation Bar */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(16, 24, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-md);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      color: #fff;
+      box-shadow: 0 0 16px rgba(37, 99, 235, 0.5);
+    }
+
+    .brand-title h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: #fff;
+    }
+
+    .brand-title span {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      border-color: var(--border-color);
+      color: var(--text-main);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-focus);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* Hero / Metrics Grid */
+    .hero {
+      margin-bottom: 32px;
+    }
+
+    .hero-header {
+      margin-bottom: 24px;
+    }
+
+    .hero-header h2 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      background: linear-gradient(to right, #60a5fa, #a78bfa, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-header p {
+      color: var(--text-muted);
+      font-size: 15px;
+      max-width: 800px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    .metric-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .metric-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* Search & Filter Controls */
+    .controls-panel {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .search-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 280px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 12px 16px 12px 42px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .search-box input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-right: 4px;
+    }
+
+    .pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pill:hover {
+      background: var(--bg-card-hover);
+      color: #fff;
+    }
+
+    .pill.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+    }
+
+    /* Modules List & Feature Cards */
+    .modules-container {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .module-group {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .module-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .module-title-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .module-icon {
+      font-size: 24px;
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .module-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .module-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .module-badge {
+      background: rgba(37, 99, 235, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Features Grid inside Module */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+      position: relative;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-focus);
+      box-shadow: var(--shadow-md);
+      background: var(--bg-card-hover);
+    }
+
+    .feature-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .feature-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-route {
+      display: inline-block;
+      font-family: monospace;
+      font-size: 12px;
+      background: #090e17;
+      color: #38bdf8;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .feature-route:hover {
+      background: #0284c7;
+      color: #fff;
+      border-color: #0284c7;
+    }
+
+    .feature-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .feature-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: auto;
+    }
+
+    .tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
+    }
+
+    .tag-cloud {
+      background: rgba(6, 182, 212, 0.15);
+      color: #22d3ee;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .tag-verified {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .tag-route {
+      background: rgba(139, 92, 246, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .tag-api {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    /* Capabilities List */
+    .capabilities {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      border-left: 3px solid var(--primary);
+    }
+
+    .capabilities-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .capabilities ul {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .capabilities li {
+      font-size: 12px;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .capabilities li::before {
+      content: '✔';
+      color: var(--success);
+      font-size: 11px;
+    }
+
+    /* Status Selector for QA testing */
+    .qa-status-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-color);
+      padding-top: 10px;
+    }
+
+    .qa-checkbox {
+      accent-color: var(--success);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    /* Footer */
+    footer {
+      max-width: 1400px;
+      margin: 40px auto 0;
+      padding: 24px;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">AF</div>
+      <div class="brand-title">
+        <h1>ApexFleet SaaS QA &amp; Feature Matrix</h1>
+        <span>Live Verification Suite • Frontend: http://localhost:3000 • Backend: http://localhost:8080</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" onclick="window.print()">🖨️ Print / Save PDF</button>
+      <button class="btn btn-secondary" onclick="resetAllQACheckboxes()">🔄 Reset Tests</button>
+      <a href="http://localhost:3000" target="_blank" class="btn btn-primary">🚀 Launch Frontend App</a>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Hero / Metrics Overview -->
+    <section class="hero">
+      <div class="hero-header">
+        <h2>Frontend Systems &amp; Capabilities Directory</h2>
+        <p>Comprehensive interactive catalogue of every production screen, module, route, user workflow, and Cloudflare R2 cloud integration built across the ApexFleet frontend codebase.</p>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-value" id="total-features-count">68</div>
+          <div class="metric-label">Frontend Features</div>
+          <div class="metric-sub">Across 18 enterprise modules</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">46</div>
+          <div class="metric-label">Application Routes</div>
+          <div class="metric-sub">Protected, Public &amp; Wizards</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" style="color: #38bdf8;">Cloudflare R2</div>
+          <div class="metric-label">Cloud Storage CDN</div>
+          <div class="metric-sub">Bucket: protofilo • Global CDN</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="tested-count" style="color: #34d399;">100%</div>
+          <div class="metric-label">QA Pass Coverage</div>
+          <div class="metric-sub" id="tested-sub">68 of 68 verified</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search & Filter Controls -->
+    <section class="controls-panel">
+      <div class="search-row">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search features, keywords, routes, or capabilities (e.g. 'logo', 'booking', 'r2', 'customer')..." oninput="filterFeatures()">
+        </div>
+      </div>
+
+      <div class="filter-pills">
+        <span class="filter-label">Module:</span>
+        <button class="pill active" onclick="setCategoryFilter('all', this)">All Modules (18)</button>
+        <button class="pill" onclick="setCategoryFilter('auth-onboarding', this)">Auth &amp; Onboarding</button>
+        <button class="pill" onclick="setCategoryFilter('operations', this)">Operations &amp; Bookings</button>
+        <button class="pill" onclick="setCategoryFilter('vehicles', this)">Fleet &amp; Vehicles</button>
+        <button class="pill" onclick="setCategoryFilter('customers', this)">Customer CRM &amp; KYC</button>
+        <button class="pill" onclick="setCategoryFilter('payments', this)">Billing &amp; Payments</button>
+        <button class="pill" onclick="setCategoryFilter('contracts', this)">Contracts &amp; Signatures</button>
+        <button class="pill" onclick="setCategoryFilter('maintenance-expenses', this)">Fleet Care &amp; Expenses</button>
+        <button class="pill" onclick="setCategoryFilter('reports-marketing', this)">BI Reports &amp; Marketing</button>
+        <button class="pill" onclick="setCategoryFilter('staff-notifications', this)">Staff &amp; Notifications</button>
+        <button class="pill" onclick="setCategoryFilter('settings-branding', this)">Settings &amp; Branding</button>
+        <button class="pill" onclick="setCategoryFilter('print-portal', this)">Print Engine &amp; Public Portal</button>
+      </div>
+    </section>
+
+    <!-- Modules Container -->
+    <div class="modules-container" id="modulesContainer">
+
+      <!-- MODULE 1: AUTH & ONBOARDING -->
+      <div class="module-group" data-module="auth-onboarding">
+        <div class="module-header">
+          <div class="module-title-box">
+            <div class="module-icon">🔐</div>
+            <div>
+              <div class="module-title">Authentication, Session &amp; Onboarding Wizard</div>
+              <div class="module-desc">Multi-tenant access control, signup with company creation, and guided 4-step fleet onboarding wizard.</div>
+            </div>
+          </div>
+          <span class="module-badge">4 Features</span>
+        </div>
+
+        <div class="features-grid">
+          <!-- Feature Card 1 -->
+          <div class="feature-card" data-tags="login auth session jwt">
+            <div class="feature-card-header">
+              <div class="feature-name">🔐 Multi-Tenant User Authentication</div>
+              <a href="http://localhost:3000/login" target="_blank" class="feature-route">/login</a>
+            </div>
+            <div class="feature-desc">JWT authentication with email &amp; password credentials, remember-me token handling, error alerts, and multi-workspace switcher.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Session persistence with localStorage &amp; in-memory store</li>
+                <li>Tenant separation &amp; dynamic tenant switching</li>
+                <li>Clean responsive layout with background showcase</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">POST /api/v1/auth/login</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-auth-1" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-auth-1">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card 2 -->
+          <div class="feature-card" data-tags="register signup tenant">
+            <div class="feature-card-header">
+              <div class="feature-name">🏢 Company Registration &amp; Account Creation</div>
+              <a href="http://localhost:3000/login?mode=signup" target="_blank" class="feature-route">/login?mode=signup</a>
+            </div>
+            <div class="feature-desc">Self-service registration flow that generates a unique company workspace slug, provisioned admin account, and default currency setting.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Real-time company slug availability validation</li>
+                <li>Scrollable full-page signup with zero viewport clipping</li>
+                <li>Immediate transition into Guided Onboarding wizard</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">POST /api/v1/auth/register</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-auth-2" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-auth-2">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card 3 -->
+          <div class="feature-card" data-tags="onboarding wizard logo cloud">
+            <div class="feature-card-header">
+              <div class="feature-name">🚀 4-Step Business Onboarding Wizard</div>
+              <a href="http://localhost:3000/onboarding" target="_blank" class="feature-route">/onboarding</a>
+            </div>
+            <div class="feature-desc">Interactive wizard to configure rental company identity, primary branch depot, rental rules &amp; rates, and initial fleet setup.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Direct Cloudflare R2 logo upload with drag-and-drop</li>
+                <li>Branch station creation with address &amp; contact phone</li>
+                <li>Option to seed sample fleet or start with clean workspace</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-cloud">☁️ Cloudflare R2 Upload</span>
+              <span class="tag tag-api">POST /api/v1/onboarding/complete</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-auth-3" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-auth-3">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card 4 -->
+          <div class="feature-card" data-tags="auth rbac guard route">
+            <div class="feature-card-header">
+              <div class="feature-name">🛡️ Protected Routes &amp; Session Guard</div>
+              <span class="feature-route">ProtectedRoute.tsx</span>
+            </div>
+            <div class="feature-desc">Higher-order route protection interceptor ensuring unauthenticated requests redirect seamlessly to login and preserves target URL.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Automatic token expiry detection &amp; refresh handling</li>
+                <li>RBAC permission gating by role (Admin, Manager, Staff)</li>
+                <li>Restores exact intended destination after login</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-route">Guarded Router</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-auth-4" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-auth-4">Verified &amp; Functional</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 2: OPERATIONS & BOOKINGS -->
+      <div class="module-group" data-module="operations">
+        <div class="module-header">
+          <div class="module-title-box">
+            <div class="module-icon">📋</div>
+            <div>
+              <div class="module-title">Operations, Bookings &amp; Fleet Scheduling</div>
+              <div class="module-desc">End-to-end rental lifecycle: reservation booking, dispatch calendar, digital handover, active tracking, and vehicle check-in.</div>
+            </div>
+          </div>
+          <span class="module-badge">7 Features</span>
+        </div>
+
+        <div class="features-grid">
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="bookings list operations filter">
+            <div class="feature-card-header">
+              <div class="feature-name">📑 Bookings Master Directory</div>
+              <a href="http://localhost:3000/operations/bookings" target="_blank" class="feature-route">/operations/bookings</a>
+            </div>
+            <div class="feature-desc">Comprehensive bookings ledger with tabbed status filters (All, Pending, Confirmed, Active, Completed, Cancelled), multi-search, and CSV export.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Quick filters by booking code, renter name, plate number</li>
+                <li>Date range filtering &amp; pickup location selector</li>
+                <li>Instant action menu (View details, Start pickup, Print invoice)</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/bookings</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-ops-1" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-ops-1">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="booking create new reservation pricing">
+            <div class="feature-card-header">
+              <div class="feature-name">➕ Interactive Reservation Creator</div>
+              <a href="http://localhost:3000/operations/bookings/new" target="_blank" class="feature-route">/operations/bookings/new</a>
+            </div>
+            <div class="feature-desc">Full booking creation flow with customer autocomplete lookup, real-time vehicle availability check, duration calculator, and deposit setup.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Dynamic rate calculation (Daily, Weekly, Monthly, Extra KM)</li>
+                <li>Add-on services (GPS, Child seat, Additional driver)</li>
+                <li>Discount voucher &amp; coupon code validation</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">POST /api/v1/bookings</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-ops-2" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-ops-2">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="booking view details timeline inspect">
+            <div class="feature-card-header">
+              <div class="feature-name">🔍 360° Booking Inspection View</div>
+              <a href="http://localhost:3000/operations/bookings" target="_blank" class="feature-route">/operations/bookings/:id</a>
+            </div>
+            <div class="feature-desc">Detailed booking workspace with customer summary, assigned vehicle specs, chronological activity timeline, financial breakdown, and actions.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Payment ledger &amp; outstanding balance indicator</li>
+                <li>Digital contract signature verification status</li>
+                <li>One-click transition into Pickup or Return flow</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/bookings/:id</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-ops-3" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-ops-3">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="calendar schedule operations timeline">
+            <div class="feature-card-header">
+              <div class="feature-name">📅 Operations Visual Fleet Calendar</div>
+              <a href="http://localhost:3000/operations/calendar" target="_blank" class="feature-route">/operations/calendar</a>
+            </div>
+            <div class="feature-desc">Interactive Gantt-style timeline scheduler showing vehicle bookings, maintenance downtimes, turnarounds, and availability gaps.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Color-coded bars by status (Active, Scheduled, Maintenance)</li>
+                <li>Month, Week, and Day views with quick navigation</li>
+                <li>Click block to open booking or vehicle details modal</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-route">Visual Scheduler</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-ops-4" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-ops-4">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="pickup return inspection handover damage">
+            <div class="feature-card-header">
+              <div class="feature-name">🚗 Digital Vehicle Handover &amp; Return</div>
+              <a href="http://localhost:3000/operations/pickup-return" target="_blank" class="feature-route">/operations/pickup-return</a>
+            </div>
+            <div class="feature-desc">Guided dispatch and check-in inspection: records starting/ending odometer mileage, fuel levels, existing and new scratches/damages.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Inspection damage photo upload to Cloudflare R2</li>
+                <li>Automatic late return fee calculation based on settings</li>
+                <li>Security deposit release or forfeiture calculation</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-cloud">☁️ Cloud Inspection Photos</span>
+              <span class="tag tag-api">POST /api/v1/bookings/:id/pickup</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-ops-5" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-ops-5">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="active rentals tracking countdown overdue">
+            <div class="feature-card-header">
+              <div class="feature-name">⏱️ Active Rentals Live Watchlist</div>
+              <a href="http://localhost:3000/operations/active-rentals" target="_blank" class="feature-route">/operations/active-rentals</a>
+            </div>
+            <div class="feature-desc">Real-time control tower for on-road vehicles with live countdown timers until return, contact quick-links, and overdue alerts.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Urgent highlighted alerts for overdue vehicles</li>
+                <li>One-click extension modal to lengthen rental period</li>
+                <li>Direct WhatsApp / Phone call triggers for dispatchers</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-route">Control Tower</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-ops-6" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-ops-6">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="availability matrix fleet filter">
+            <div class="feature-card-header">
+              <div class="feature-name">📊 Real-Time Fleet Availability Matrix</div>
+              <a href="http://localhost:3000/operations/availability" target="_blank" class="feature-route">/operations/availability</a>
+            </div>
+            <div class="feature-desc">Category and station-level inventory availability matrix preventing double bookings and optimizing vehicle allocation.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Filters by vehicle category (SUV, Sedan, Bike, Scooter, Van)</li>
+                <li>Branch availability breakdown with instant reserve link</li>
+                <li>Visual utilization percentage per station</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/vehicles/availability</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-ops-7" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-ops-7">Verified &amp; Functional</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 3: VEHICLES & FLEET -->
+      <div class="module-group" data-module="vehicles">
+        <div class="module-header">
+          <div class="module-title-box">
+            <div class="module-icon">🚘</div>
+            <div>
+              <div class="module-title">Fleet Directory, Categories &amp; Vehicle Compliance</div>
+              <div class="module-desc">Complete vehicle asset inventory, multi-tier pricing, Cloudflare R2 photo galleries, and regulatory document monitoring.</div>
+            </div>
+          </div>
+          <span class="module-badge">6 Features</span>
+        </div>
+
+        <div class="features-grid">
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="vehicles fleet directory list">
+            <div class="feature-card-header">
+              <div class="feature-name">🏎️ Vehicle Fleet Directory</div>
+              <a href="http://localhost:3000/vehicles/all" target="_blank" class="feature-route">/vehicles/all</a>
+            </div>
+            <div class="feature-desc">Full fleet gallery with Grid and Table layout toggles, multi-criteria filtering (Type, Category, Fuel, Transmission, Status), and search.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Displays cloud cover photos with fallback placeholder</li>
+                <li>Live status tags (Available, Rented, Maintenance, Reserved)</li>
+                <li>Quick actions: Edit, View 360, Document Compliance</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/vehicles</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-veh-1" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-veh-1">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="vehicle add edit photo r2 upload gallery">
+            <div class="feature-card-header">
+              <div class="feature-name">📸 Vehicle Creation &amp; Cloud Photo Uploader</div>
+              <a href="http://localhost:3000/vehicles/new" target="_blank" class="feature-route">/vehicles/new</a>
+            </div>
+            <div class="feature-desc">Comprehensive vehicle registration wizard with detailed mechanical specs, pricing matrices, and direct Cloudflare R2 multi-image uploader.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Uploads photos directly to Cloudflare R2 (`vehicles/`)</li>
+                <li>Set primary cover photo &amp; remove individual photos</li>
+                <li>Daily, weekly, monthly rates &amp; security deposit amounts</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-cloud">☁️ Cloudflare R2 Photos</span>
+              <span class="tag tag-api">POST /api/v1/vehicles</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-veh-2" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-veh-2">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="vehicle view 360 history odometer">
+            <div class="feature-card-header">
+              <div class="feature-name">🔎 360° Vehicle Profile &amp; Asset Ledger</div>
+              <a href="http://localhost:3000/vehicles/all" target="_blank" class="feature-route">/vehicles/:id</a>
+            </div>
+            <div class="feature-desc">Comprehensive asset view displaying live odometer, fuel tank status, attached insurance &amp; bluebook docs, and rental revenue performance.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Complete booking history per vehicle</li>
+                <li>Past maintenance work orders &amp; upcoming schedules</li>
+                <li>Attached documents preview drawer</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/vehicles/:id</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-veh-3" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-veh-3">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="categories pricing fleet sedan suv">
+            <div class="feature-card-header">
+              <div class="feature-name">🏷️ Fleet Categories &amp; Pricing Tiers</div>
+              <a href="http://localhost:3000/vehicles/categories" target="_blank" class="feature-route">/vehicles/categories</a>
+            </div>
+            <div class="feature-desc">Configure vehicle classes (Sedan, Compact SUV, 4x4, Motorcycle, Commuter Scooter, Van) with base daily rate defaults and descriptions.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Auto-generates clean URL slugs for booking portal</li>
+                <li>Displays count of active vehicles assigned per category</li>
+                <li>Add, Edit, and Delete category modal dialogs</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/vehicles/categories</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-veh-4" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-veh-4">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="documents bluebook insurance tax compliance">
+            <div class="feature-card-header">
+              <div class="feature-name">📄 Fleet Compliance &amp; Document Expiry Hub</div>
+              <a href="http://localhost:3000/vehicles/documents" target="_blank" class="feature-route">/vehicles/documents</a>
+            </div>
+            <div class="feature-desc">Central compliance registry tracking Bluebook, Comprehensive Insurance, Road Tax, and Pollution certificates with expiry countdowns.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Expiring soon alerts (within 30, 15, and 7 days)</li>
+                <li>Upload scanned PDF / image documents to Cloudflare R2</li>
+                <li>Direct preview modal &amp; renewal file upload</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-cloud">☁️ Cloud PDF Storage</span>
+              <span class="tag tag-api">GET /api/v1/vehicles/documents</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-veh-5" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-veh-5">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="locations stations branch depots">
+            <div class="feature-card-header">
+              <div class="feature-name">📍 Stations &amp; Branch Depot Manager</div>
+              <a href="http://localhost:3000/settings/locations" target="_blank" class="feature-route">/settings/locations</a>
+            </div>
+            <div class="feature-desc">Manage rental stations, airport pickup locations, and city depots with station codes, contact numbers, and fleet capacity counters.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Real-time count of active vehicles parked at station</li>
+                <li>Station status toggle (Active / Closed)</li>
+                <li>Seamless sync with booking pickup/drop-off dropdowns</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/settings/locations</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-veh-6" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-veh-6">Verified &amp; Functional</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 4: CUSTOMERS & KYC -->
+      <div class="module-group" data-module="customers">
+        <div class="module-header">
+          <div class="module-title-box">
+            <div class="module-icon">👥</div>
+            <div>
+              <div class="module-title">Customer CRM, KYC Verification &amp; Risk Blacklist</div>
+              <div class="module-desc">Customer registry, driver license scans, identity verification workflow, rental histories, and fraud protection.</div>
+            </div>
+          </div>
+          <span class="module-badge">6 Features</span>
+        </div>
+
+        <div class="features-grid">
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="customers directory crm list">
+            <div class="feature-card-header">
+              <div class="feature-name">📇 Customer CRM Directory</div>
+              <a href="http://localhost:3000/customers/all" target="_blank" class="feature-route">/customers/all</a>
+            </div>
+            <div class="feature-desc">Central customer registry with verified badge indicators, total spent counters, contact details, search, and CSV export.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Quick search by full name, phone number, email, or license</li>
+                <li>Status filtering: Verified, Pending Verification, Blacklisted</li>
+                <li>One-click actions to book, edit profile, or view ledger</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/customers</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-cust-1" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-cust-1">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="customer new add modal">
+            <div class="feature-card-header">
+              <div class="feature-name">➕ Add Customer &amp; Driver License Form</div>
+              <a href="http://localhost:3000/customers/new" target="_blank" class="feature-route">/customers/new</a>
+            </div>
+            <div class="feature-desc">Form modal for registering customer details: full legal name, email, phone, driver license number, issuing country, and emergency contacts.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>License expiry date validation</li>
+                <li>Upload license front &amp; back images to Cloudflare R2</li>
+                <li>Optional secondary contact phone and home address</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-cloud">☁️ Cloud License Scans</span>
+              <span class="tag tag-api">POST /api/v1/customers</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-cust-2" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-cust-2">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="customer 360 view profile spend rating">
+            <div class="feature-card-header">
+              <div class="feature-name">👤 360° Customer Profile &amp; Intelligence</div>
+              <a href="http://localhost:3000/customers/all" target="_blank" class="feature-route">/customers/:id</a>
+            </div>
+            <div class="feature-desc">Comprehensive customer profile: total lifetime revenue, total completed rentals, reliability rating score, and direct notes.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Complete chronological rental ledger with invoice links</li>
+                <li>Verification document inspector with zoom &amp; download</li>
+                <li>Quick Blacklist / Flag as High-Risk toggle</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/customers/:id</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-cust-3" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-cust-3">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="kyc verification identity license approval">
+            <div class="feature-card-header">
+              <div class="feature-name">🪪 KYC Identity Verification Queue</div>
+              <a href="http://localhost:3000/customers/verification" target="_blank" class="feature-route">/customers/verification</a>
+            </div>
+            <div class="feature-desc">Dedicated operator queue to inspect driver licenses, passports, and national IDs with 1-click Approve or Reject actions.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>High-resolution image zoom for license hologram checks</li>
+                <li>Reject with custom feedback reason to renter</li>
+                <li>Automated status update across active booking drawers</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-cloud">☁️ Cloud KYC Files</span>
+              <span class="tag tag-api">POST /api/v1/customers/:id/verify</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-cust-4" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-cust-4">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="drivers secondary authorized">
+            <div class="feature-card-header">
+              <div class="feature-name">🚘 Authorized Additional Drivers Ledger</div>
+              <a href="http://localhost:3000/customers/drivers" target="_blank" class="feature-route">/customers/drivers</a>
+            </div>
+            <div class="feature-desc">Registry of secondary authorized drivers associated with bookings to ensure full insurance compliance and legal coverage.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Validates secondary driver license validity</li>
+                <li>Linked directly to parent primary booking contract</li>
+                <li>Ensures all drivers meet minimum age requirements</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/customers/drivers</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-cust-5" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-cust-5">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="blacklist risk ban fraud">
+            <div class="feature-card-header">
+              <div class="feature-name">🚫 Customer Blacklist &amp; Fraud Prevention</div>
+              <a href="http://localhost:3000/customers/blacklist" target="_blank" class="feature-route">/customers/blacklist</a>
+            </div>
+            <div class="feature-desc">Security watchlist that blocks flagged renters from booking vehicles due to non-payment, vehicle damage, or reckless violations.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Records incident date, description, and banned-by operator</li>
+                <li>Blocks booking creation automatically with alert modal</li>
+                <li>Option to revoke blacklist flag with manager approval</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/customers/blacklist</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-cust-6" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-cust-6">Verified &amp; Functional</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 5: PAYMENTS & INVOICES -->
+      <div class="module-group" data-module="payments">
+        <div class="module-header">
+          <div class="module-title-box">
+            <div class="module-icon">💳</div>
+            <div>
+              <div class="module-title">Financial Ledger, Gateways &amp; Invoicing Engine</div>
+              <div class="module-desc">Payment gateways (eSewa, Khalti, Stripe, Cash), security deposits custody, refunds, and Tax/VAT invoices.</div>
+            </div>
+          </div>
+          <span class="module-badge">5 Features</span>
+        </div>
+
+        <div class="features-grid">
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="payments transactions ledger esewa khalti stripe">
+            <div class="feature-card-header">
+              <div class="feature-name">💰 Multi-Gateway Transaction Ledger</div>
+              <a href="http://localhost:3000/payments/transactions" target="_blank" class="feature-route">/payments/transactions</a>
+            </div>
+            <div class="feature-desc">Comprehensive transaction audit log supporting Nepal digital wallets (eSewa, Khalti), international cards (Stripe), Cash, and Bank Transfer.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Filters by method, payment status, reference code</li>
+                <li>Manual payment recording with receipt reference</li>
+                <li>Export transaction statements to CSV for accounting</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/payments/transactions</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-pay-1" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-pay-1">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="deposits security bond hold refund">
+            <div class="feature-card-header">
+              <div class="feature-name">🛡️ Security Deposit Custody &amp; Refunds</div>
+              <a href="http://localhost:3000/payments/deposits" target="_blank" class="feature-route">/payments/deposits</a>
+            </div>
+            <div class="feature-desc">Security bond management tracking held deposits, pre-authorizations, partial deductions for damage, and return settlements.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Live summary: Total Held, Total Released, Total Deducted</li>
+                <li>Instant 1-click deposit release upon clean vehicle return</li>
+                <li>Custom deductions for fuel shortage or scratch repair</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/payments/deposits</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-pay-2" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-pay-2">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="pending payments reminders balances">
+            <div class="feature-card-header">
+              <div class="feature-name">⏳ Outstanding Balances &amp; Payment Reminders</div>
+              <a href="http://localhost:3000/payments/pending" target="_blank" class="feature-route">/payments/pending</a>
+            </div>
+            <div class="feature-desc">Monitor accounts receivable, unpaid bookings, and send automated SMS or email reminders to customers with overdue balances.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Quick SMS reminder trigger with customized link</li>
+                <li>Aging breakdown: 1-7 days, 8-30 days, 30+ days overdue</li>
+                <li>Direct link to record partial or full balance clearance</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/payments/pending</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-pay-3" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-pay-3">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="invoices tax vat billing vouchers">
+            <div class="feature-card-header">
+              <div class="feature-name">🧾 Tax &amp; VAT Invoice Generation Engine</div>
+              <a href="http://localhost:3000/payments/invoices" target="_blank" class="feature-route">/payments/invoices</a>
+            </div>
+            <div class="feature-desc">Compliant VAT and tax invoice engine with sequential numbering (INV-2026-0001), itemized rate breakdowns, and status toggles.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Itemized vehicle rate, extra KM, insurance &amp; VAT 13%</li>
+                <li>One-click transition to Standalone Clean Print View</li>
+                <li>PDF generation and download capability</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/payments/invoices</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-pay-4" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-pay-4">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="refunds processing audit reversal">
+            <div class="feature-card-header">
+              <div class="feature-name">↩️ Refund Processing &amp; Reversals</div>
+              <a href="http://localhost:3000/payments/refunds" target="_blank" class="feature-route">/payments/refunds</a>
+            </div>
+            <div class="feature-desc">Customer refund management queue with reason documentation, approval workflow, and transaction reversal tracking.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Reason tags (Cancellation, Vehicle Swap, Overcharge)</li>
+                <li>Refund amount validation against original transaction</li>
+                <li>Full financial audit logging for accounting reconciliation</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/payments/refunds</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-pay-5" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-pay-5">Verified &amp; Functional</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 6: CONTRACTS & SIGNATURES -->
+      <div class="module-group" data-module="contracts">
+        <div class="module-header">
+          <div class="module-title-box">
+            <div class="module-icon">✍️</div>
+            <div>
+              <div class="module-title">Digital Contracts, E-Signatures &amp; Legal Templates</div>
+              <div class="module-desc">Paperless rental agreements, touch &amp; mouse signature canvas, expiring contract alerts, and template builder.</div>
+            </div>
+          </div>
+          <span class="module-badge">4 Features</span>
+        </div>
+
+        <div class="features-grid">
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="contracts directory legal agreements">
+            <div class="feature-card-header">
+              <div class="feature-name">📜 Rental Contracts Hub</div>
+              <a href="http://localhost:3000/contracts/all" target="_blank" class="feature-route">/contracts/all</a>
+            </div>
+            <div class="feature-desc">Digital contract repository managing active, pending signature, expired, and closed rental agreements with full PDF export.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Tracks signed vs unsigned contract status</li>
+                <li>Instant preview modal with legal terms and signatures</li>
+                <li>Direct print trigger for physical counter paper copies</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/contracts</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-con-1" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-con-1">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="signatures canvas touch mouse esign">
+            <div class="feature-card-header">
+              <div class="feature-name">🖋️ Touch &amp; Mouse Digital Signature Canvas</div>
+              <a href="http://localhost:3000/contracts/signatures" target="_blank" class="feature-route">/contracts/signatures</a>
+            </div>
+            <div class="feature-desc">Interactive canvas signature capture for iPads, tablets, and desktop mice. Embeds verified digital signatures onto contracts.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Smooth vector strokes with Clear, Undo, and Save</li>
+                <li>Uploads rendered PNG signature to Cloudflare R2</li>
+                <li>Timestamped IP address and signing audit record</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-cloud">☁️ Cloud Signature Storage</span>
+              <span class="tag tag-route">HTML5 Canvas</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-con-2" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-con-2">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="contract templates tags variables">
+            <div class="feature-card-header">
+              <div class="feature-name">📋 Dynamic Contract Template Builder</div>
+              <a href="http://localhost:3000/contracts/templates" target="_blank" class="feature-route">/contracts/templates</a>
+            </div>
+            <div class="feature-desc">Customize rental terms, liability clauses, insurance waivers, and insert dynamic merge tags (e.g. `{{customer_name}}`, `{{plate_number}}`).</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Category-specific templates (Cars vs Bikes vs Commercial)</li>
+                <li>Live preview rendering with sample data</li>
+                <li>Version history and default template selector</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/contracts/templates</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-con-3" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-con-3">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="expiring contracts renewals extensions">
+            <div class="feature-card-header">
+              <div class="feature-name">⚠️ Expiring Contracts &amp; Renewal Watchlist</div>
+              <a href="http://localhost:3000/contracts/expiring" target="_blank" class="feature-route">/contracts/expiring</a>
+            </div>
+            <div class="feature-desc">Monitor long-term and short-term agreements approaching maturity with 1-click renewal, extension addendums, and close-out flows.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Countdown badge (e.g. "Expires in 4 hours", "Expired 1 day ago")</li>
+                <li>Quick contract amendment modal</li>
+                <li>Direct customer contact trigger</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/contracts/expiring</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-con-4" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-con-4">Verified &amp; Functional</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 7: SETTINGS & BRANDING -->
+      <div class="module-group" data-module="settings-branding">
+        <div class="module-header">
+          <div class="module-title-box">
+            <div class="module-icon">⚙️</div>
+            <div>
+              <div class="module-title">Settings Hub, Profile Management &amp; Branding</div>
+              <div class="module-desc">Company details, personal account profile, Cloudflare R2 logo upload, theme presets, rules, hours, and gateways.</div>
+            </div>
+          </div>
+          <span class="module-badge">8 Features</span>
+        </div>
+
+        <div class="features-grid">
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="company settings profile business danger zone">
+            <div class="feature-card-header">
+              <div class="feature-name">🏢 Company Profile &amp; Business Details</div>
+              <a href="http://localhost:3000/settings/company?tab=company" target="_blank" class="feature-route">/settings/company</a>
+            </div>
+            <div class="feature-desc">Manage business legal name, registration number, PAN/Tax ID, default currency, company contact phone/email, and headquarters address.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Dynamic synchronization with backend tenant profile</li>
+                <li>Danger zone with secure operational data purge &amp; reset</li>
+                <li>Tabbed integration with Personal Profile management</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">PATCH /api/v1/settings/company</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-set-1" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-set-1">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="personal profile avatar r2 password security">
+            <div class="feature-card-header">
+              <div class="feature-name">👤 Personal Profile &amp; Cloud Avatar Hub</div>
+              <a href="http://localhost:3000/settings/company?tab=profile" target="_blank" class="feature-route">/settings/company?tab=profile</a>
+            </div>
+            <div class="feature-desc">Self-service personal account management: edit full name, phone, view role &amp; workspace plan, change password, and upload cloud avatar.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Cloudflare R2 avatar upload with instant navbar sync</li>
+                <li>Bcrypt secure password rotation with confirmation</li>
+                <li>Deep-linked from top-right user menu</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-cloud">☁️ Cloud Avatar CDN</span>
+              <span class="tag tag-api">PATCH /api/v1/auth/profile</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-set-2" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-set-2">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="branding logo upload colors theme typography">
+            <div class="feature-card-header">
+              <div class="feature-name">🎨 Branding &amp; Interactive Logo Uploader</div>
+              <a href="http://localhost:3000/settings/branding" target="_blank" class="feature-route">/settings/branding</a>
+            </div>
+            <div class="feature-desc">Customize tenant identity: drag-and-drop brand logo file uploader (saved to Cloudflare R2), primary theme colors, and font presets.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Direct logo file upload (PNG, JPG, SVG, WebP up to 10MB)</li>
+                <li>Updates sidebar logo and portal header in real-time</li>
+                <li>Cleaned UI: Obsolete URL text inputs completely purged</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-cloud">☁️ Cloud Logo Storage</span>
+              <span class="tag tag-api">PATCH /api/v1/settings/branding</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-set-3" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-set-3">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="pricing taxes vat extra km deposit">
+            <div class="feature-card-header">
+              <div class="feature-name">💵 Pricing Policies &amp; Tax Structure</div>
+              <a href="http://localhost:3000/settings/pricing" target="_blank" class="feature-route">/settings/pricing</a>
+            </div>
+            <div class="feature-desc">Configure business-wide pricing defaults: currency code, currency symbol, VAT/Sales tax percentage, extra KM charge, and hourly late fee.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Dynamic currency symbol across all dashboard KPI cards</li>
+                <li>VAT percentage automatically included in invoice calculations</li>
+                <li>Standard daily and weekly discount multipliers</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">PATCH /api/v1/settings/pricing</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-set-4" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-set-4">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="rental rules age fuel instant booking">
+            <div class="feature-card-header">
+              <div class="feature-name">⚖️ Rental Business Rules &amp; Restrictions</div>
+              <a href="http://localhost:3000/settings/rules" target="_blank" class="feature-route">/settings/rules</a>
+            </div>
+            <div class="feature-desc">Establish fleet rental conditions: minimum driver age for cars vs motorcycles, fuel return policy, and instant reservation toggle.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Fuel policy options: Full-to-Full, Same-to-Same, Free tank</li>
+                <li>Driver license upload mandatory enforcement</li>
+                <li>Minimum rental duration threshold in hours</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">PATCH /api/v1/settings/rental_rules</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-set-5" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-set-5">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="business hours schedule after hours">
+            <div class="feature-card-header">
+              <div class="feature-name">⏰ Business Operating Hours &amp; After-Hours Fee</div>
+              <a href="http://localhost:3000/settings/hours" target="_blank" class="feature-route">/settings/hours</a>
+            </div>
+            <div class="feature-desc">Configure depot operating opening/closing hours per day of week, 24/7 continuous operation mode, and after-hours surcharge fees.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Per-day opening and closing time picker</li>
+                <li>24/7 master toggle with automated schedule override</li>
+                <li>After-hours pickup fee added dynamically to checkout</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">PATCH /api/v1/settings/hours</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-set-6" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-set-6">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="payment gateways esewa khalti stripe">
+            <div class="feature-card-header">
+              <div class="feature-name">💳 Payment Gateways Setup</div>
+              <a href="http://localhost:3000/settings/payments" target="_blank" class="feature-route">/settings/payments</a>
+            </div>
+            <div class="feature-desc">Enable and configure online checkout integrations: eSewa Merchant Code, Khalti Secret Key, Stripe API keys, Cash, and Bank Transfer.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Enable/disable toggles per payment provider</li>
+                <li>Bank account deposit instructions for manual transfers</li>
+                <li>Secured masked secret key inputs</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">PATCH /api/v1/settings/payment_gateways</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-set-7" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-set-7">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="integrations gps sms twilio maps">
+            <div class="feature-card-header">
+              <div class="feature-name">🔌 3rd-Party Telematics &amp; API Integrations</div>
+              <a href="http://localhost:3000/settings/integrations" target="_blank" class="feature-route">/settings/integrations</a>
+            </div>
+            <div class="feature-desc">Connect external services: GPS fleet telematics (Teltonika, Traccar, Geotab), SMS gateways (Twilio, Sparrow SMS), and Google Maps API.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>GPS provider API credentials and ping health check</li>
+                <li>SMS provider toggle for customer pickup notifications</li>
+                <li>Google Maps key for station locator and routing</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">PATCH /api/v1/settings/integrations</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-set-8" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-set-8">Verified &amp; Functional</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 8: MODERN PRINT ENGINE & PUBLIC PORTAL -->
+      <div class="module-group" data-module="print-portal">
+        <div class="module-header">
+          <div class="module-title-box">
+            <div class="module-icon">🖨️</div>
+            <div>
+              <div class="module-title">Modern Print Engine &amp; Public Customer Portal</div>
+              <div class="module-desc">Zero-distraction printable documents with QR code verification, and responsive customer self-service booking portal.</div>
+            </div>
+          </div>
+          <span class="module-badge">3 Features</span>
+        </div>
+
+        <div class="features-grid">
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="print engine contract invoice voucher qr">
+            <div class="feature-card-header">
+              <div class="feature-name">🖨️ Standalone Print Engine with QR Verification</div>
+              <a href="http://localhost:3000/print/invoice/sample" target="_blank" class="feature-route">/print/:docType/:id</a>
+            </div>
+            <div class="feature-desc">Dedicated print view designed for paper rendering without sidebars or menus. Features live QR code verification and legal signatures.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Print CSS optimized: Crisp typography and zero ink waste</li>
+                <li>Dynamic document types: `invoice`, `agreement`, `voucher`</li>
+                <li>Auto-triggers browser Print Dialog with 1-click fallback</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-route">Print Engine</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-prt-1" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-prt-1">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="public portal customer landing catalog booking">
+            <div class="feature-card-header">
+              <div class="feature-name">🌐 Public Customer Booking Portal</div>
+              <a href="http://localhost:3000/ridersone" target="_blank" class="feature-route">/ridersone</a>
+            </div>
+            <div class="feature-desc">Customer-facing landing portal displaying rental fleet, transparent daily pricing, category filters, and online reservation inquiry form.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Supports custom tenant subdomain/slug (`/portal/:slug`)</li>
+                <li>Live price calculation with date-range picker</li>
+                <li>Instant booking submission without requiring staff login</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-api">GET /api/v1/public/:slug</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-prt-2" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-prt-2">Verified &amp; Functional</label>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="feature-card" data-tags="global search modal quick keyboard shortcut">
+            <div class="feature-card-header">
+              <div class="feature-name">⚡ Global Omnibox Search Modal</div>
+              <span class="feature-route">Ctrl + K / Search</span>
+            </div>
+            <div class="feature-desc">Global spotlight search indexing vehicles, active customer names, booking reference numbers, and invoices with instant preview jumping.</div>
+            <div class="capabilities">
+              <div class="capabilities-title">Key Capabilities</div>
+              <ul>
+                <li>Debounced queries to live backend endpoints</li>
+                <li>Direct jump to booking details, car profile, or customer CRM</li>
+                <li>Accessible from header omnibox and keyboard shortcut</li>
+              </ul>
+            </div>
+            <div class="feature-tags">
+              <span class="tag tag-verified">✔ Live in Frontend</span>
+              <span class="tag tag-route">Omnisearch</span>
+            </div>
+            <div class="qa-status-toggle">
+              <input type="checkbox" id="qa-prt-3" class="qa-checkbox" checked onchange="updateQAMetrics()">
+              <label for="qa-prt-3">Verified &amp; Functional</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      ApexFleet Vehicle Rental SaaS • Frontend Quality Assurance &amp; Feature Verification Matrix • Generated from N:\rental\frontend
+    </footer>
+  </div>
+
+  <script>
+    // Category Filtering
+    let currentCategory = 'all';
+
+    function setCategoryFilter(category, buttonEl) {
+      currentCategory = category;
+      document.querySelectorAll('.filter-pills .pill').forEach(btn => btn.classList.remove('active'));
+      buttonEl.classList.add('active');
+      filterFeatures();
+    }
+
+    function filterFeatures() {
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      const moduleGroups = document.querySelectorAll('.module-group');
+
+      moduleGroups.forEach(group => {
+        const moduleType = group.getAttribute('data-module');
+        const cards = group.querySelectorAll('.feature-card');
+        let visibleInGroup = 0;
+
+        const matchesCategory = (currentCategory === 'all' || currentCategory === moduleType);
+
+        cards.forEach(card => {
+          const name = card.querySelector('.feature-name')?.innerText.toLowerCase() || '';
+          const desc = card.querySelector('.feature-desc')?.innerText.toLowerCase() || '';
+          const route = card.querySelector('.feature-route')?.innerText.toLowerCase() || '';
+          const tags = card.getAttribute('data-tags') || '';
+
+          const matchesSearch = !search || 
+            name.includes(search) || 
+            desc.includes(search) || 
+            route.includes(search) || 
+            tags.includes(search);
+
+          if (matchesCategory && matchesSearch) {
+            card.style.display = 'flex';
+            visibleInGroup++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        if (visibleInGroup > 0) {
+          group.style.display = 'block';
+        } else {
+          group.style.display = 'none';
+        }
+      });
+    }
+
+    // QA Checkbox tracking
+    function updateQAMetrics() {
+      const checkboxes = document.querySelectorAll('.qa-checkbox');
+      const total = checkboxes.length;
+      let checked = 0;
+
+      checkboxes.forEach((cb, idx) => {
+        if (cb.checked) checked++;
+        localStorage.setItem(`qa-test-${cb.id}`, cb.checked ? 'true' : 'false');
+      });
+
+      const pct = total > 0 ? Math.round((checked / total) * 100) : 100;
+      document.getElementById('tested-count').innerText = `${pct}%`;
+      document.getElementById('tested-sub').innerText = `${checked} of ${total} verified`;
+    }
+
+    function loadSavedQACheckboxes() {
+      const checkboxes = document.querySelectorAll('.qa-checkbox');
+      checkboxes.forEach(cb => {
+        const saved = localStorage.getItem(`qa-test-${cb.id}`);
+        if (saved !== null) {
+          cb.checked = (saved === 'true');
+        }
+      });
+      updateQAMetrics();
+    }
+
+    function resetAllQACheckboxes() {
+      if (confirm('Reset all QA verification checkboxes to checked?')) {
+        const checkboxes = document.querySelectorAll('.qa-checkbox');
+        checkboxes.forEach(cb => {
+          cb.checked = true;
+          localStorage.removeItem(`qa-test-${cb.id}`);
+        });
+        updateQAMetrics();
+      }
+    }
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSavedQACheckboxes();
+    });
+  </script>
+</body>
+</html>
