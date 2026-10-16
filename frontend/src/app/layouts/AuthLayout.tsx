@@ -14,21 +14,23 @@ export const AuthLayout: React.FC = () => {
     <Layout
       style={{
         minHeight: '100vh',
+        width: '100%',
         background: isDark
           ? '#0f0f0f'
           : `radial-gradient(ellipse at top, #ffffff 0%, #f4f6fa 70%, #ebedf3 100%)`,
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: '32px 16px',
+        padding: '36px 16px',
         position: 'relative',
-        overflow: 'hidden',
+        overflowY: 'auto',
+        overflowX: 'hidden',
       }}
     >
       {/* Subtle modern geometric background accent */}
       <div
         style={{
-          position: 'absolute',
+          position: 'fixed',
           top: '-15%',
           left: '50%',
           transform: 'translateX(-50%)',
@@ -39,18 +41,21 @@ export const AuthLayout: React.FC = () => {
             : 'radial-gradient(circle, rgba(22, 119, 255, 0.07) 0%, rgba(22, 119, 255, 0.02) 40%, transparent 70%)',
           pointerEvents: 'none',
           filter: 'blur(40px)',
+          zIndex: 0,
         }}
       />
 
       <Content
         style={{
           width: '100%',
-          maxWidth: 500,
+          maxWidth: 520,
+          margin: 'auto',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           position: 'relative',
           zIndex: 1,
+          padding: '8px 0',
         }}
       >
         <Outlet />
