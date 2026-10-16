@@ -1,0 +1,266 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  background-color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Display & Heading Typography (Outfit + Plus Jakarta Sans) */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.ant-typography h1,
+.ant-typography h2,
+.ant-typography h3,
+.ant-typography h4,
+.ant-page-header-heading-title,
+.ant-card-head-title,
+.ant-modal-title,
+.ant-drawer-title {
+  font-family: var(--font-display) !important;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+/* Stat Counters & Large Metrics */
+.ant-statistic-content-value,
+.ant-statistic-title {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+/* Numbers & Tabular Currency Alignment */
+.currency-display,
+.ant-table-cell,
+.ant-statistic-content-value-int {
+  font-variant-numeric: tabular-nums;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Full page layout stretch */
+.ant-layout {
+  height: 100%;
+  width: 100%;
+}
+
+.ant-layout-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+}
+
+.page-container-spin,
+.page-container-spin .ant-spin-container,
+.page-container-spin .ant-spin-nested-loading {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+}
+
+.ant-card {
+  width: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+}
+
+.ant-table-wrapper {
+  width: 100%;
+}
+
+/* Compact form label-to-input spacing: removes excessive gap between title and input box */
+.ant-form-vertical .ant-form-item {
+  margin-bottom: 18px;
+}
+
+.ant-form-vertical .ant-form-item .ant-form-item-label,
+.ant-form-vertical .ant-form-item-label {
+  padding-bottom: 4px !important;
+}
+
+.ant-form-vertical .ant-form-item-label > label {
+  height: auto !important;
+  min-height: unset !important;
+  line-height: 1.35 !important;
+}
+
+/* Menu: clean borderless items without ugly borders */
+.ant-menu-inline,
+.ant-menu-vertical {
+  border-inline-end: none !important;
+}
+
+.ant-menu-item-divider {
+  display: none !important;
+}
+
+/* Hide scrolling line on sidebar when submenus open */
+.ant-layout-sider,
+.ant-layout-sider-children,
+.ant-layout-sider-children>*,
+.ant-menu-inline,
+.ant-menu-vertical {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.ant-layout-sider::-webkit-scrollbar,
+.ant-layout-sider-children::-webkit-scrollbar,
+.ant-menu-inline::-webkit-scrollbar,
+.ant-menu-vertical::-webkit-scrollbar,
+.ant-layout-sider *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Submenu styling - remove any vertical indent lines */
+.ant-menu-sub.ant-menu-inline {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.ant-menu-inline .ant-menu-item::after,
+.ant-menu-vertical .ant-menu-item::after {
+  display: none !important;
+}
+
+/* Sidebar Menu Typography: top-level navigation items styled semi-bold ("little bold") */
+.sidebar-menu.ant-menu-root > .ant-menu-item,
+.sidebar-menu.ant-menu-root > .ant-menu-submenu > .ant-menu-submenu-title,
+.desktop-sidebar .ant-menu-root > .ant-menu-item,
+.desktop-sidebar .ant-menu-root > .ant-menu-submenu > .ant-menu-submenu-title,
+.ant-drawer .sidebar-menu.ant-menu-root > .ant-menu-item,
+.ant-drawer .sidebar-menu.ant-menu-root > .ant-menu-submenu > .ant-menu-submenu-title {
+  font-weight: 600 !important;
+  letter-spacing: -0.01em;
+}
+
+.sidebar-menu.ant-menu-root > .ant-menu-item .ant-menu-title-content,
+.sidebar-menu.ant-menu-root > .ant-menu-submenu > .ant-menu-submenu-title .ant-menu-title-content,
+.desktop-sidebar .ant-menu-root > .ant-menu-item .ant-menu-title-content,
+.desktop-sidebar .ant-menu-root > .ant-menu-submenu > .ant-menu-submenu-title .ant-menu-title-content,
+.ant-drawer .sidebar-menu.ant-menu-root > .ant-menu-item .ant-menu-title-content,
+.ant-drawer .sidebar-menu.ant-menu-root > .ant-menu-submenu > .ant-menu-submenu-title .ant-menu-title-content {
+  font-weight: 600 !important;
+}
+
+/* Keep submenu nested items clean and balanced */
+.sidebar-menu.ant-menu-root .ant-menu-sub .ant-menu-item,
+.desktop-sidebar .ant-menu-root .ant-menu-sub .ant-menu-item,
+.ant-drawer .sidebar-menu.ant-menu-root .ant-menu-sub .ant-menu-item {
+  font-weight: 450 !important;
+}
+
+.sidebar-menu.ant-menu-root .ant-menu-sub .ant-menu-item.ant-menu-item-selected,
+.desktop-sidebar .ant-menu-root .ant-menu-sub .ant-menu-item.ant-menu-item-selected,
+.ant-drawer .sidebar-menu.ant-menu-root .ant-menu-sub .ant-menu-item.ant-menu-item-selected {
+  font-weight: 550 !important;
+}
+
+/* Responsive Layout & Mobile Enhancements */
+@media (max-width: 768px) {
+  .ant-table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .ant-table-wrapper .ant-table {
+    min-width: 100%;
+  }
+
+  .ant-modal {
+    max-width: calc(100vw - 24px) !important;
+    margin: 12px auto !important;
+    top: 20px !important;
+  }
+
+  .ant-drawer-left .ant-drawer-content-wrapper {
+    max-width: 85vw !important;
+  }
+
+  .ant-card .ant-card-body {
+    padding: 14px 12px !important;
+  }
+
+  .ant-card .ant-card-head {
+    padding: 0 12px !important;
+  }
+
+  h1,
+  .ant-page-header-heading-title {
+    font-size: 19px !important;
+  }
+
+  .ant-space {
+    max-width: 100%;
+  }
+
+  .desktop-sidebar {
+    display: none !important;
+  }
+}
+
+/* Print utility */
+@media print {
+  html,
+  body,
+  #root {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+    position: static !important;
+  }
+
+  .ant-layout-sider,
+  .ant-layout-header,
+  .ant-breadcrumb,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  .ant-layout-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+}

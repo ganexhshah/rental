@@ -1,0 +1,120 @@
+name: rental_saas
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: rental_postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-rental_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rental_secret_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-rental_saas_db}
+      TZ: Asia/Kathmandu
+    volumes:
+      - rental_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-rental_admin} -d ${POSTGRES_DB:-rental_saas_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rental_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: rental_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
+    volumes:
+      - rental_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rental_net
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rental_api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      ENV: ${ENV:-production}
+      PORT: "8080"
+      DATABASE_URL: postgres://${POSTGRES_USER:-rental_admin}:${POSTGRES_PASSWORD:-rental_secret_2026}@postgres:5432/${POSTGRES_DB:-rental_saas_db}?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-rental_prod_jwt_super_secret_signing_key_32bytes_2026_np}
+      DEFAULT_CURRENCY: ${DEFAULT_CURRENCY:-NPR}
+      DEFAULT_CURRENCY_SYMBOL: ${DEFAULT_CURRENCY_SYMBOL:-Rs.}
+      TIMEZONE: ${TIMEZONE:-Asia/Kathmandu}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-*}
+    networks:
+      - rental_net
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: ["/app/worker"]
+    container_name: rental_worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      ENV: ${ENV:-production}
+      DATABASE_URL: postgres://${POSTGRES_USER:-rental_admin}:${POSTGRES_PASSWORD:-rental_secret_2026}@postgres:5432/${POSTGRES_DB:-rental_saas_db}?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-rental_prod_jwt_super_secret_signing_key_32bytes_2026_np}
+      DEFAULT_CURRENCY: ${DEFAULT_CURRENCY:-NPR}
+      DEFAULT_CURRENCY_SYMBOL: ${DEFAULT_CURRENCY_SYMBOL:-Rs.}
+      TIMEZONE: ${TIMEZONE:-Asia/Kathmandu}
+    networks:
+      - rental_net
+    healthcheck:
+      disable: true
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: rental_caddy
+    restart: unless-stopped
+    ports:
+      - "${CADDY_HTTP_PORT:-8081}:80"
+      - "${CADDY_HTTPS_PORT:-8443}:443"
+    depends_on:
+      - api
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - rental_caddy_data:/data
+      - rental_caddy_config:/config
+    networks:
+      - rental_net
+
+volumes:
+  rental_postgres_data:
+  rental_redis_data:
+  rental_caddy_data:
+  rental_caddy_config:
+
+networks:
+  rental_net:
+    driver: bridge

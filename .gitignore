@@ -1,0 +1,143 @@
+# ==========================================
+# ApexFleet - Root .gitignore
+# ==========================================
+
+# ------------------------------------------
+# Environment & Secrets (NEVER COMMIT)
+# ------------------------------------------
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+*.jks
+*.keystore
+
+# ------------------------------------------
+# Dependencies & Package Managers
+# ------------------------------------------
+node_modules/
+.pnp
+.pnp.js
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+
+# ------------------------------------------
+# Build Outputs & Compiled Binaries
+# ------------------------------------------
+# Frontend
+dist/
+dist-ssr/
+build/
+out/
+.next/
+
+# Backend (Go)
+backend/bin/
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+backend/debug
+
+# Mobile (Flutter / Android / iOS / Windows)
+app/build/
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+**/android/.gradle/
+**/ios/Flutter/.last_build_id
+**/ios/Pods/
+**/windows/flutter/ephemeral/
+*.apk
+*.aab
+*.ipa
+app.*.symbols
+app.*.map.json
+
+# ------------------------------------------
+# Local Uploads, Storage, & Cache
+# ------------------------------------------
+uploads/
+backend/uploads/
+**/uploads/*
+!**/uploads/.gitkeep
+*.db
+*.sqlite
+*.sqlite3
+
+# ------------------------------------------
+# Logs & Diagnostic Outputs
+# ------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ------------------------------------------
+# IDE & Code Editor Files
+# ------------------------------------------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.iml
+*.ipr
+*.iws
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# ------------------------------------------
+# OS Generated Files
+# ------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+
+# ------------------------------------------
+# Testing & Code Coverage
+# ------------------------------------------
+coverage/
+.nyc_output/
+.widget_preview/
+
+# ------------------------------------------
+# Temporary & Backup Files
+# ------------------------------------------
+*.tmp
+*.temp
+*.bak
+*~
+

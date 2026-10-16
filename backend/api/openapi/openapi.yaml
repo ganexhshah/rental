@@ -1,0 +1,1113 @@
+openapi: 3.0.3
+info:
+  title: Vehicle Rental SaaS REST API
+  description: Multi-tenant production-grade API for Vehicle Rental Management SaaS (Car, Bike, Scooter) with Nepali currency (NPR / Rs.) and Asia/Kathmandu timezone.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Direct API Server
+  - url: http://localhost:8081
+    description: Caddy Reverse Proxy
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      responses:
+        '200':
+          description: System health status
+  /ready:
+    get:
+      summary: Readiness probe
+      responses:
+        '200':
+          description: Service ready to handle traffic
+  /live:
+    get:
+      summary: Liveness probe
+      responses:
+        '200':
+          description: Process alive
+  /api/v1/auth/register:
+    post:
+      summary: Register tenant organization and initial admin user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Tenant and user registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /api/v1/auth/login:
+    post:
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /api/v1/auth/refresh:
+    post:
+      summary: Refresh JWT access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Tokens refreshed
+  /api/v1/auth/me:
+    get:
+      summary: Get currently authenticated user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile
+  /api/v1/tenants/current:
+    get:
+      summary: Get current tenant organization settings
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Tenant settings
+    patch:
+      summary: Update tenant settings (Admin only)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Tenant updated
+  /api/v1/vehicles:
+    get:
+      summary: List fleet vehicles with filters
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: category_id
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [available, rented, maintenance, reserved, out_of_service]
+      responses:
+        '200':
+          description: List of vehicles
+    post:
+      summary: Create new vehicle
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Vehicle created
+  /api/v1/vehicles/availability:
+    get:
+      summary: Check real-time vehicle availability across date range
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: vehicle_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Availability check result
+  /api/v1/vehicles/categories:
+    get:
+      summary: List vehicle categories
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Categories list
+    post:
+      summary: Create vehicle category
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Category created
+  /api/v1/vehicles/locations:
+    get:
+      summary: List rental pickup/drop-off locations
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Locations list
+    post:
+      summary: Create new branch location
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Location created
+  /api/v1/customers:
+    get:
+      summary: List customers
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Customer list
+    post:
+      summary: Register customer
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Customer registered
+  /api/v1/customers/{id}/verify:
+    post:
+      summary: Verify customer documents/identity
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Customer verified
+  /api/v1/bookings/quote:
+    post:
+      summary: Calculate canonical pricing quote with VAT 13% and tiered discounts
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PricingQuoteRequest'
+      responses:
+        '200':
+          description: Calculated quote in NPR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PricingQuoteResponse'
+  /api/v1/bookings:
+    get:
+      summary: List reservations and active rentals
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Bookings list
+    post:
+      summary: Create booking reservation with concurrency lock
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Booking created
+  /api/v1/bookings/{id}/pickup:
+    post:
+      summary: Execute vehicle pickup inspection checklist
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vehicle checked out to customer
+  /api/v1/bookings/{id}/return:
+    post:
+      summary: Execute vehicle return inspection, calculate overages/damages, trigger invoice
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vehicle returned and final balance settled
+  /api/v1/contracts/bookings/{bookingId}:
+    get:
+      summary: Retrieve or generate legally-binding rental agreement
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Contract agreement HTML and status
+  /api/v1/contracts/{id}/sign:
+    post:
+      summary: Store digital customer signature on rental contract
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Contract digitally executed
+  /api/v1/payments:
+    get:
+      summary: List payments ledger
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Payment records
+    post:
+      summary: Process transaction (eSewa, Khalti, Stripe, Cash) with idempotency
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Payment processed or redirect initiated
+  /api/v1/invoices:
+    get:
+      summary: List billing invoices
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Invoices list
+  /api/v1/maintenance/records:
+    get:
+      summary: List fleet maintenance work orders
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Maintenance records
+    post:
+      summary: Schedule vehicle maintenance
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Maintenance scheduled
+  /api/v1/expenses:
+    get:
+      summary: List operating expenses
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Expenses list
+    post:
+      summary: Log operational expense
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Expense logged
+  /api/v1/marketing/coupons:
+    get:
+      summary: List discount coupons
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Coupons list
+    post:
+      summary: Create discount coupon
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Coupon created
+  /api/v1/notifications:
+    get:
+      summary: List in-app notifications
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Notification feed
+  /api/v1/reports/summary:
+    get:
+      summary: Fleet overview dashboard KPIs
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: KPI statistics
+  /api/v1/reports/pnl:
+    get:
+      summary: Financial profit & loss statement
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Revenue, expenses and net profit in NPR
+  /api/v1/reports/utilization:
+    get:
+      summary: Fleet utilization metrics per vehicle
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Utilization data
+  /api/v1/subscriptions:
+    get:
+      summary: Tenant SaaS subscription tier details
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current subscription plan
+  /api/v1/documents:
+    get:
+      summary: List generated documents for tenant
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: doc_type
+          in: query
+          schema:
+            type: string
+        - name: entity_type
+          in: query
+          schema:
+            type: string
+        - name: entity_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of documents
+  /api/v1/documents/{id}:
+    get:
+      summary: Get document details and version history
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Document details
+  /api/v1/documents/{id}/view:
+    get:
+      summary: Stream PDF document inline in browser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: PDF binary stream
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+  /api/v1/documents/{id}/download-url:
+    get:
+      summary: Get HMAC expiring signed download URL
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Signed download URL
+  /api/v1/documents/files/{key}:
+    get:
+      summary: Direct file download using expiring HMAC token
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: expires
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: signature
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Raw file binary
+  /api/v1/invoices:
+    post:
+      summary: Create new draft invoice
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceRequest'
+      responses:
+        '201':
+          description: Created invoice
+  /api/v1/invoices/{id}/issue:
+    post:
+      summary: Issue invoice (locks record & triggers authoritative PDF generation)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Issued invoice with official document number and PDF link
+  /api/v1/invoices/{id}/void:
+    post:
+      summary: Void an issued invoice
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Voided invoice
+  /api/v1/invoices/{id}/credit-note:
+    post:
+      summary: Issue credit note against invoice
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditNoteRequest'
+      responses:
+        '201':
+          description: Created credit note
+  /api/v1/deposits/{id}/deduct:
+    post:
+      summary: Deduct damage or penalty from security deposit
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeductDepositRequest'
+      responses:
+        '200':
+          description: Updated deposit
+  /api/v1/deposits/{id}/refund:
+    post:
+      summary: Refund remaining security deposit to customer
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Refunded deposit
+  /api/v1/contracts/{id}/sign:
+    post:
+      summary: Digital e-signature on contract with legal audit evidence
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignContractRequest'
+      responses:
+        '200':
+          description: Signed contract snapshot and updated PDF
+  /api/v1/inspections:
+    get:
+      summary: List vehicle handover and return inspections
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Inspection list
+    post:
+      summary: Create inspection and generate handover/return report PDF
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInspectionRequest'
+      responses:
+        '201':
+          description: Created inspection and document
+  /api/v1/maintenance/work-orders:
+    get:
+      summary: List maintenance work orders
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Work order list
+    post:
+      summary: Create maintenance work order & generate printable WO PDF
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkOrderRequest'
+      responses:
+        '201':
+          description: Created work order
+  /api/v1/maintenance/schedules:
+    get:
+      summary: List preventive maintenance schedules with triggers
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Preventive schedules
+  /api/v1/expenses/{id}/approve:
+    post:
+      summary: Approve expense & generate disbursement voucher PDF
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Approved expense
+  /api/v1/coupons/validate:
+    post:
+      summary: Validate promo coupon against booking parameters
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidateCouponRequest'
+      responses:
+        '200':
+          description: Coupon validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidateCouponResponse'
+  /api/v1/marketing/referrals:
+    get:
+      summary: List customer referral codes
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Referral codes
+    post:
+      summary: Create referral code
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Created referral
+  /api/v1/reports/export:
+    post:
+      summary: Export financial or utilization report as CSV or signed PDF
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportExportRequest'
+      responses:
+        '200':
+          description: Report export record with download URL
+  /api/v1/integrations:
+    get:
+      summary: List configured third-party integrations
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Integration connections
+    post:
+      summary: Save integration provider credentials
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveIntegrationRequest'
+      responses:
+        '200':
+          description: Saved integration
+  /api/v1/integrations/{id}/test:
+    post:
+      summary: Test connection to integration provider
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Connection test ping result
+  /api/v1/audit-logs:
+    get:
+      summary: Query immutable system and financial audit log trail
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Audit log entries
+  /api/v1/users/invitations:
+    post:
+      summary: Invite new staff member with role and location scopes
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteStaffRequest'
+      responses:
+        '201':
+          description: Invitation sent
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - company_name
+        - company_slug
+        - email
+        - password
+      properties:
+        company_name:
+          type: string
+          example: Kathmandu Wheels Rental
+        company_slug:
+          type: string
+          example: ktm-wheels
+        email:
+          type: string
+          example: admin@ktmwheels.com
+        password:
+          type: string
+          example: secretPassword123
+        currency:
+          type: string
+          example: NPR
+    LoginRequest:
+      type: object
+      required:
+        - company_slug
+        - email
+        - password
+      properties:
+        company_slug:
+          type: string
+          example: ktm-wheels
+        email:
+          type: string
+          example: admin@ktmwheels.com
+        password:
+          type: string
+          example: secretPassword123
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        expires_in:
+          type: integer
+        user:
+          type: object
+    PricingQuoteRequest:
+      type: object
+      required:
+        - vehicle_id
+        - start_date
+        - end_date
+      properties:
+        vehicle_id:
+          type: string
+          format: uuid
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+        coupon_code:
+          type: string
+        insurance:
+          type: boolean
+    PricingQuoteResponse:
+      type: object
+      properties:
+        rental_days:
+          type: integer
+        base_rental_rate:
+          type: number
+        rental_amount:
+          type: number
+        insurance_amount:
+          type: number
+        discount_amount:
+          type: number
+        extra_charges:
+          type: number
+        tax_amount:
+          type: number
+          description: 13% Nepal VAT
+        deposit_amount:
+          type: number
+        total_amount:
+          type: number
+        currency:
+          type: string
+          example: NPR
+        currency_symbol:
+          type: string
+          example: Rs.
+    CreateInvoiceRequest:
+      type: object
+      required:
+        - customer_id
+        - due_date
+      properties:
+        booking_id:
+          type: string
+          format: uuid
+        rental_id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+        due_date:
+          type: string
+          format: date
+        notes:
+          type: string
+        terms:
+          type: string
+        tax_rate:
+          type: number
+          example: 13.0
+        line_items:
+          type: array
+          items:
+            type: object
+            required:
+              - description
+              - quantity
+              - unit_price
+            properties:
+              description:
+                type: string
+              quantity:
+                type: integer
+              unit_price:
+                type: number
+    CreditNoteRequest:
+      type: object
+      required:
+        - amount
+        - reason
+      properties:
+        amount:
+          type: number
+        reason:
+          type: string
+    DeductDepositRequest:
+      type: object
+      required:
+        - amount
+        - reason
+      properties:
+        amount:
+          type: number
+        reason:
+          type: string
+    SignContractRequest:
+      type: object
+      required:
+        - signer_name
+        - signature_image_url
+      properties:
+        signer_name:
+          type: string
+        signer_role:
+          type: string
+          example: customer
+        signature_image_url:
+          type: string
+    CreateInspectionRequest:
+      type: object
+      required:
+        - vehicle_id
+        - inspection_type
+        - odometer_reading
+        - fuel_level
+      properties:
+        vehicle_id:
+          type: string
+          format: uuid
+        booking_id:
+          type: string
+          format: uuid
+        rental_id:
+          type: string
+          format: uuid
+        inspection_type:
+          type: string
+          enum: [pickup, return, routine]
+        odometer_reading:
+          type: integer
+        fuel_level:
+          type: string
+        fuel_percentage:
+          type: integer
+        checklist:
+          type: object
+        damages:
+          type: array
+          items:
+            type: object
+        customer_signature_url:
+          type: string
+        inspector_signature_url:
+          type: string
+    CreateWorkOrderRequest:
+      type: object
+      required:
+        - vehicle_id
+        - title
+        - scheduled_date
+      properties:
+        vehicle_id:
+          type: string
+          format: uuid
+        vendor_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        service_type:
+          type: string
+        scheduled_date:
+          type: string
+          format: date
+        estimated_cost:
+          type: number
+    ValidateCouponRequest:
+      type: object
+      required:
+        - code
+        - rental_amount
+      properties:
+        code:
+          type: string
+          example: MONSOON20
+        rental_amount:
+          type: number
+        vehicle_category_id:
+          type: string
+          format: uuid
+    ValidateCouponResponse:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        discount_amount:
+          type: number
+        final_amount:
+          type: number
+        reason:
+          type: string
+    ReportExportRequest:
+      type: object
+      required:
+        - report_type
+        - format
+        - start_date
+        - end_date
+      properties:
+        report_type:
+          type: string
+          enum: [pnl, utilization, revenue, expenses]
+        format:
+          type: string
+          enum: [csv, pdf]
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        basis:
+          type: string
+          enum: [accrual, cash]
+    SaveIntegrationRequest:
+      type: object
+      required:
+        - provider
+        - category
+      properties:
+        provider:
+          type: string
+          example: esewa
+        category:
+          type: string
+          example: payment
+        credentials:
+          type: object
+        settings:
+          type: object
+        is_enabled:
+          type: boolean
+    InviteStaffRequest:
+      type: object
+      required:
+        - email
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          example: fleet_manager
+        location_ids:
+          type: array
+          items:
+            type: string
+            format: uuid

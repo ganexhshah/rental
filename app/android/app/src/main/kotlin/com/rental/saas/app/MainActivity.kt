@@ -1,0 +1,5 @@
+package com.rental.saas.app
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()
