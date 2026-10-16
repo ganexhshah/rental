@@ -22,6 +22,7 @@ interface AuthStoreState {
   logout: () => void
   switchTenant: (tenantId: string) => void
   updateUserProfile: (partial: Partial<User>) => void
+  updateTenant: (partial: Partial<Tenant>) => void
   fetchCurrentUser: () => Promise<void>
 }
 
@@ -134,6 +135,13 @@ export const useAuthStore = create<AuthStoreState>((set, get) => {
       const updated = { ...current, ...partial }
       localStorage.setItem(AUTH_USER_KEY, JSON.stringify(updated))
       set({ user: updated })
+    },
+
+    updateTenant: (partial) => {
+      const current = get().tenant
+      const updated = { ...current, ...partial }
+      localStorage.setItem(AUTH_TENANT_DATA_KEY, JSON.stringify(updated))
+      set({ tenant: updated })
     },
 
     fetchCurrentUser: async () => {

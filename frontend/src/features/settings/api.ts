@@ -248,14 +248,19 @@ export const settingsApi = {
   updateBranding: async (branding: Partial<BrandingSettings>): Promise<CompanySettings> => {
     try {
       await apiPatch<any>('/settings/branding', branding)
+      if (branding.companyName) {
+        await apiPatch<any>('/tenants/current', { name: branding.companyName }).catch(() => null)
+      }
     } catch (err) {
       console.warn('API updateBranding failed:', err)
     }
     const current = inMemorySettingsCache || (await settingsApi.getSettings())
+    const updatedLogo = branding.logoUrl !== undefined ? branding.logoUrl : current.logoUrl
     const updated = {
       ...current,
-      branding: { ...current.branding, ...branding },
-      logoUrl: branding.logoUrl || current.logoUrl,
+      name: branding.companyName || current.name,
+      branding: { ...current.branding, ...branding, logoUrl: updatedLogo },
+      logoUrl: updatedLogo,
     }
     inMemorySettingsCache = updated
     return updated

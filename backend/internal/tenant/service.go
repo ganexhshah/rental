@@ -282,10 +282,13 @@ func (s *Service) UpdateSettingsSection(ctx context.Context, tenantID uuid.UUID,
 	settingsMap[section] = currentSection
 
 	if section == "branding" {
-		if logo, ok := values["logoUrl"].(string); ok && logo != "" {
+		if logo, ok := values["logoUrl"].(string); ok {
 			t.LogoURL = logo
-		} else if logo, ok := values["logo_url"].(string); ok && logo != "" {
+		} else if logo, ok := values["logo_url"].(string); ok {
 			t.LogoURL = logo
+		}
+		if name, ok := values["companyName"].(string); ok && name != "" {
+			t.Name = name
 		}
 	}
 
