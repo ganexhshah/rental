@@ -419,14 +419,9 @@ export const vehiclesApi = {
         return locs.map(mapBackendLocation)
       }
     } catch (e) {
-      console.warn('Live backend getLocations error:', e)
+      console.warn('Backend getLocations error:', e)
     }
-    const list = mockDb.get('locations')
-    const vehicles = mockDb.get('vehicles')
-    return list.map((loc) => ({
-      ...loc,
-      activeVehiclesCount: vehicles.filter((v) => v.locationId === loc.id).length,
-    }))
+    return []
   },
 
   deleteLocation: async (id: string): Promise<boolean> => {

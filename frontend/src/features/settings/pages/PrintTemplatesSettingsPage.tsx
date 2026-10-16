@@ -45,12 +45,12 @@ export const PrintTemplatesSettingsPage: React.FC = () => {
     if (settings) {
       const docSettings: Partial<DocumentTemplateSettings> = settings.documentTemplates || {}
       form.setFieldsValue({
-        name: settings.name || 'Rental Company Pvt. Ltd.',
-        registrationNumber: settings.registrationNumber || 'REG-102938',
-        taxId: settings.taxId || 'PAN: 601234567',
-        headquartersAddress: settings.headquartersAddress || 'Kathmandu, Nepal',
-        phone: settings.phone || '+977-1-4200000',
-        email: settings.email || 'contact@rental.com',
+        name: settings.name || '',
+        registrationNumber: settings.registrationNumber || '',
+        taxId: settings.taxId || '',
+        headquartersAddress: settings.headquartersAddress || '',
+        phone: settings.phone || '',
+        email: settings.email || '',
 
         agreementPrefix: docSettings.agreementPrefix || 'BRA-',
         agreementTerms:

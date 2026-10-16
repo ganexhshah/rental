@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,21 +20,30 @@ var (
 )
 
 type Service struct {
-	pool *pgxpool.Pool
+	pool              *pgxpool.Pool
+	mu                sync.RWMutex
+	inMemoryLocations map[uuid.UUID][]Location
 }
 
 func NewService(pool *pgxpool.Pool) *Service {
-	return &Service{pool: pool}
+	return &Service{
+		pool:              pool,
+		inMemoryLocations: make(map[uuid.UUID][]Location),
+	}
 }
 
 // --- Locations ---
 
 func (s *Service) ListLocations(ctx context.Context, tenantID uuid.UUID) ([]Location, error) {
 	if s.pool == nil {
-		return []Location{
-			{ID: uuid.MustParse("11111111-1111-1111-1111-111111111111"), TenantID: tenantID, Name: "Kathmandu Central Hub (HQ)", Code: "KTM-HQ", City: "Kathmandu", Address: "Kantipath, Near Garden of Dreams, Kathmandu", Phone: "+977 1-4428901", IsActive: true},
-			{ID: uuid.MustParse("22222222-2222-2222-2222-222222222222"), TenantID: tenantID, Name: "Pokhara Lakeside Branch", Code: "PKR-LKS", City: "Pokhara", Address: "Lakeside Road, Ward No. 6, Pokhara", Phone: "+977 61-521990", IsActive: true},
-		}, nil
+		s.mu.RLock()
+		defer s.mu.RUnlock()
+		if locs, ok := s.inMemoryLocations[tenantID]; ok && len(locs) > 0 {
+			res := make([]Location, len(locs))
+			copy(res, locs)
+			return res, nil
+		}
+		return []Location{}, nil
 	}
 	query := `
 		SELECT l.id, l.tenant_id, l.name, l.code, l.address, l.city, l.country, COALESCE(l.phone, ''), l.is_active,
@@ -100,7 +110,7 @@ func (s *Service) CreateLocation(ctx context.Context, tenantID uuid.UUID, req Cr
 
 	if s.pool == nil {
 		now := time.Now().UTC()
-		return &Location{
+		loc := &Location{
 			ID:                  id,
 			TenantID:            tenantID,
 			Name:                req.Name,
@@ -113,7 +123,14 @@ func (s *Service) CreateLocation(ctx context.Context, tenantID uuid.UUID, req Cr
 			ActiveVehiclesCount: 0,
 			CreatedAt:           now,
 			UpdatedAt:           now,
-		}, nil
+		}
+		s.mu.Lock()
+		if s.inMemoryLocations == nil {
+			s.inMemoryLocations = make(map[uuid.UUID][]Location)
+		}
+		s.inMemoryLocations[tenantID] = append(s.inMemoryLocations[tenantID], *loc)
+		s.mu.Unlock()
+		return loc, nil
 	}
 
 	query := `
@@ -133,6 +150,41 @@ func (s *Service) CreateLocation(ctx context.Context, tenantID uuid.UUID, req Cr
 }
 
 func (s *Service) UpdateLocation(ctx context.Context, tenantID, locationID uuid.UUID, req UpdateLocationRequest) (*Location, error) {
+	if s.pool == nil {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if locs, ok := s.inMemoryLocations[tenantID]; ok {
+			for i := range locs {
+				if locs[i].ID == locationID {
+					if req.Name != "" {
+						locs[i].Name = req.Name
+					}
+					if req.Code != "" {
+						locs[i].Code = req.Code
+					}
+					if req.Address != "" {
+						locs[i].Address = req.Address
+					}
+					if req.City != "" {
+						locs[i].City = req.City
+					}
+					if req.Country != "" {
+						locs[i].Country = req.Country
+					}
+					if req.Phone != "" {
+						locs[i].Phone = req.Phone
+					}
+					if req.IsActive != nil {
+						locs[i].IsActive = *req.IsActive
+					}
+					locs[i].UpdatedAt = time.Now().UTC()
+					return &locs[i], nil
+				}
+			}
+		}
+		return nil, ErrNotFound
+	}
+
 	query := `
 		UPDATE locations
 		SET name = COALESCE(NULLIF($3, ''), name),
@@ -158,6 +210,21 @@ func (s *Service) UpdateLocation(ctx context.Context, tenantID, locationID uuid.
 }
 
 func (s *Service) DeleteLocation(ctx context.Context, tenantID, locationID uuid.UUID) error {
+	if s.pool == nil {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if locs, ok := s.inMemoryLocations[tenantID]; ok {
+			filtered := make([]Location, 0, len(locs))
+			for _, l := range locs {
+				if l.ID != locationID {
+					filtered = append(filtered, l)
+				}
+			}
+			s.inMemoryLocations[tenantID] = filtered
+		}
+		return nil
+	}
+
 	var count int
 	err := s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM vehicles WHERE location_id = $1 AND tenant_id = $2`, locationID, tenantID).Scan(&count)
 	if err == nil && count > 0 {

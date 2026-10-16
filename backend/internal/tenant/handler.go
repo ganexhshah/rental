@@ -78,7 +78,24 @@ func (h *Handler) GetAllSettings(w http.ResponseWriter, r *http.Request) {
 	companyMap["currency_symbol"] = t.CurrencySymbol
 	companyMap["timezone"] = t.Timezone
 	companyMap["plan"] = t.Plan
+	if logo := t.GetLogoURL(); logo != "" {
+		companyMap["logoUrl"] = logo
+		companyMap["logo_url"] = logo
+	}
 	settingsMap["company"] = companyMap
+
+	brandingMap, _ := settingsMap["branding"].(map[string]any)
+	if brandingMap == nil {
+		brandingMap = make(map[string]any)
+	}
+	if brandingMap["companyName"] == nil || brandingMap["companyName"] == "" {
+		brandingMap["companyName"] = t.Name
+	}
+	if logo := t.GetLogoURL(); logo != "" {
+		brandingMap["logoUrl"] = logo
+		brandingMap["logo_url"] = logo
+	}
+	settingsMap["branding"] = brandingMap
 
 	httpx.JSON(w, http.StatusOK, settingsMap)
 }
@@ -165,6 +182,40 @@ func (h *Handler) GetSectionSettings(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpx.Error(w, http.StatusInternalServerError, "GET_FAILED", err.Error())
 		return
+	}
+	if sec == nil {
+		sec = make(map[string]any)
+	}
+
+	t, _ := h.service.GetCurrentTenant(r.Context(), tenantID)
+	if t != nil {
+		if section == "company" {
+			sec["name"] = t.Name
+			sec["slug"] = t.Slug
+			sec["currency"] = t.Currency
+			sec["currency_symbol"] = t.CurrencySymbol
+			sec["timezone"] = t.Timezone
+			sec["plan"] = t.Plan
+			if logo := t.GetLogoURL(); logo != "" {
+				sec["logoUrl"] = logo
+				sec["logo_url"] = logo
+			}
+		} else if section == "branding" {
+			if sec["companyName"] == nil || sec["companyName"] == "" {
+				sec["companyName"] = t.Name
+			}
+			if logo := t.GetLogoURL(); logo != "" {
+				sec["logoUrl"] = logo
+				sec["logo_url"] = logo
+			}
+		} else if section == "pricing" {
+			if sec["currencyCode"] == nil || sec["currencyCode"] == "" {
+				sec["currencyCode"] = t.Currency
+			}
+			if sec["currencySymbol"] == nil || sec["currencySymbol"] == "" {
+				sec["currencySymbol"] = t.CurrencySymbol
+			}
+		}
 	}
 
 	httpx.JSON(w, http.StatusOK, sec)
