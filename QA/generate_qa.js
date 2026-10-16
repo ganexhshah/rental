@@ -1042,12 +1042,14 @@ const featuresData = [
 
 // Generate HTML
 function generateHTML() {
-  const cardsHTML = featuresData.map((f, index) => {
+  const cardsHTML = featuresData.map((f) => {
+    const cleanTitle = f.name.replace(/^[\p{Emoji}\u200d\uFE0F\s]+/u, '').trim();
+
     const fixedIssuesHTML = f.fixedIssues && f.fixedIssues.length > 0 ? `
       <div class="fixed-issues-box">
         <div class="fixed-issues-title">
-          <span>🔧 Fixed Issues &amp; Quality Improvements (${f.fixedIssues.length})</span>
-          <button class="btn-toggle-fixed" onclick="toggleFixedBox('${f.id}')" id="btn-toggle-${f.id}">Show Details ▼</button>
+          <span>Fixed Issues &amp; Improvements (${f.fixedIssues.length})</span>
+          <button type="button" class="btn-toggle-fixed" onclick="toggleFixedBox('${f.id}')" id="btn-toggle-${f.id}">Show Details ▼</button>
         </div>
         <div class="fixed-issues-list" id="fixed-list-${f.id}" style="display: none;">
           ${f.fixedIssues.map(fix => `
@@ -1061,13 +1063,13 @@ function generateHTML() {
     ` : '';
 
     return `
-      <div class="feature-card" id="card-${f.id}" data-id="${f.id}" data-status="${f.defaultStatus}" data-tags="${f.tags.join(' ')}">
+      <div class="feature-card" id="card-${f.id}" data-id="${f.id}" data-status="${f.defaultStatus}" data-tags="${f.tags.join(' ')}" data-default-note="${(f.defaultNote || '').replace(/"/g, '&quot;')}">
         <div class="feature-card-header">
           <div>
-            <div class="feature-name">${f.name}</div>
+            <div class="feature-name">${cleanTitle}</div>
             <div class="feature-submodule">${f.moduleName}</div>
           </div>
-          <a href="${f.url}" target="_blank" class="feature-route" title="Click to test in application">${f.route} ↗</a>
+          <a href="${f.url}" target="_blank" rel="noopener noreferrer" class="feature-route" title="Click to test in application">${f.route} ↗</a>
         </div>
 
         <div class="feature-desc">${f.desc}</div>
@@ -1075,7 +1077,7 @@ function generateHTML() {
         <div class="capabilities">
           <div class="capabilities-title">Key Capabilities</div>
           <ul>
-            ${f.capabilities.map(cap => `<li>${cap}</li>`).join('')}
+            ${f.capabilities.map(cap => `<li><span class="bullet">•</span><span>${cap}</span></li>`).join('')}
           </ul>
         </div>
 
@@ -1084,37 +1086,52 @@ function generateHTML() {
         <!-- Interactive QA & QI Testing Box -->
         <div class="qa-inspection-box">
           <div class="qa-header-row">
-            <span class="qa-box-title">🧪 QA / QI Inspection &amp; Status</span>
+            <span class="qa-box-title">QA / QI Verification</span>
             <select class="qa-status-select" id="status-${f.id}" onchange="changeFeatureStatus('${f.id}', this.value)">
-              <option value="passed" ${f.defaultStatus === 'passed' ? 'selected' : ''}>🟢 Passed (Verified)</option>
-              <option value="fixed" ${f.defaultStatus === 'fixed' ? 'selected' : ''}>🔧 Fixed &amp; Retested</option>
-              <option value="issue">⚠️ Issue Logged / Bug</option>
-              <option value="pending">⏳ Pending Review</option>
+              <option value="passed" ${f.defaultStatus === 'passed' ? 'selected' : ''}>Verified / Passed</option>
+              <option value="fixed" ${f.defaultStatus === 'fixed' ? 'selected' : ''}>Fixed &amp; Retested</option>
+              <option value="issue">Defect / Issue Found</option>
+              <option value="pending">Pending Review</option>
             </select>
           </div>
 
-          <div class="qa-notes-container">
-            <textarea 
-              class="qa-notes-input" 
-              id="notes-${f.id}" 
-              placeholder="📝 Enter QA/QI test notes, observations, or reproduction steps..."
-              oninput="saveFeatureNotes('${f.id}')"
-            >${f.defaultNote || ''}</textarea>
+          <!-- Notes & Audit Trail -->
+          <div class="qa-notes-section">
+            <div class="qa-notes-header">
+              <span class="qa-notes-title">Tester Notes &amp; Findings</span>
+              <span class="notes-count-badge" id="notes-count-${f.id}">0 notes</span>
+            </div>
 
-            <div class="qa-quick-stamps">
-              <span class="stamps-label">Quick Stamps:</span>
-              <button type="button" class="btn-stamp" onclick="addStamp('${f.id}', 'Chrome 120 OK')">+ Chrome OK</button>
-              <button type="button" class="btn-stamp" onclick="addStamp('${f.id}', 'Cloud R2 Upload OK')">+ Cloud R2 OK</button>
-              <button type="button" class="btn-stamp" onclick="addStamp('${f.id}', 'Mobile Viewport OK')">+ Mobile OK</button>
-              <button type="button" class="btn-stamp" onclick="addStamp('${f.id}', 'Edge Case Verified')">+ Edge Case OK</button>
+            <!-- Notes List Log -->
+            <div class="qa-notes-list" id="notes-list-${f.id}"></div>
+
+            <!-- Add Note Controls -->
+            <div class="qa-add-note-box">
+              <div class="qa-note-input-row">
+                <input 
+                  type="text" 
+                  class="qa-note-input" 
+                  id="note-input-${f.id}" 
+                  placeholder="Type note, edge case, or reproduction step..."
+                  onkeydown="handleNoteKey(event, '${f.id}')"
+                />
+                <button type="button" class="btn-add-note" onclick="addFeatureNote('${f.id}')">Add Note</button>
+              </div>
+              <div class="qa-quick-stamps">
+                <span class="stamps-label">Quick Stamps:</span>
+                <button type="button" class="btn-stamp" onclick="quickAddStamp('${f.id}', 'Verified OK in Chrome & Edge')">+ Pass OK</button>
+                <button type="button" class="btn-stamp" onclick="quickAddStamp('${f.id}', 'Cloud R2 Upload Tested & Verified')">+ R2 Cloud OK</button>
+                <button type="button" class="btn-stamp" onclick="quickAddStamp('${f.id}', 'Mobile Responsive Checked')">+ Mobile OK</button>
+                <button type="button" class="btn-stamp" onclick="quickAddStamp('${f.id}', 'Defect Logged: Needs Investigation')">+ Log Defect</button>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="feature-tags">
           <span class="tag tag-api">${f.api}</span>
-          ${f.tags.includes('r2') || f.tags.includes('cloud') ? '<span class="tag tag-cloud">☁️ Cloudflare R2</span>' : ''}
-          <span class="tag tag-status-${f.defaultStatus}" id="badge-status-${f.id}">Status: ${f.defaultStatus.toUpperCase()}</span>
+          ${f.tags.includes('r2') || f.tags.includes('cloud') ? '<span class="tag tag-cloud">Cloudflare R2</span>' : ''}
+          <span class="tag tag-status-${f.defaultStatus}" id="badge-status-${f.id}">${f.defaultStatus.toUpperCase()}</span>
         </div>
       </div>
     `;
@@ -1125,31 +1142,23 @@ function generateHTML() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ApexFleet SaaS - QA &amp; QI Testing Hub (Notes, Defect Log &amp; Fixed Issues)</title>
+  <title>ApexFleet SaaS — Quality Assurance &amp; QI Testing Suite</title>
   <style>
     :root {
-      --bg-primary: #0a0f1d;
-      --bg-secondary: #111827;
-      --bg-card: #162032;
-      --bg-card-hover: #1c2940;
-      --border-color: #24344d;
-      --border-focus: #3b82f6;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --accent: #06b6d4;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --purple: #8b5cf6;
+      --bg: #09090b;
+      --bg-card: #121215;
+      --bg-card-hover: #17171c;
+      --bg-subtle: #18181b;
+      --border: #27272a;
+      --border-subtle: #1f1f23;
+      --border-focus: #52525b;
+      --text: #fafafa;
+      --text-muted: #a1a1aa;
+      --text-dim: #71717a;
+      --primary: #3b82f6;
       --radius-sm: 6px;
-      --radius-md: 10px;
-      --radius-lg: 16px;
-      --shadow-sm: 0 2px 6px rgba(0,0,0,0.3);
-      --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
-      --shadow-lg: 0 16px 40px rgba(0,0,0,0.5);
+      --radius-md: 8px;
+      --radius-lg: 12px;
     }
 
     * {
@@ -1160,8 +1169,8 @@ function generateHTML() {
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: radial-gradient(circle at 50% 0%, #172554 0%, var(--bg-primary) 70%);
-      color: var(--text-main);
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       line-height: 1.5;
       padding-bottom: 60px;
@@ -1171,14 +1180,13 @@ function generateHTML() {
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(16, 24, 39, 0.9);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border-color);
-      padding: 16px 32px;
+      background: rgba(9, 9, 11, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: var(--shadow-md);
       flex-wrap: wrap;
       gap: 16px;
     }
@@ -1190,190 +1198,169 @@ function generateHTML() {
     }
 
     .brand-logo {
-      width: 42px;
-      height: 42px;
-      border-radius: var(--radius-md);
-      background: linear-gradient(135deg, var(--primary), var(--accent));
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: #18181b;
+      border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 800;
-      font-size: 20px;
+      font-weight: 700;
+      font-size: 14px;
       color: #fff;
-      box-shadow: 0 0 16px rgba(37, 99, 235, 0.5);
+      letter-spacing: -0.5px;
     }
 
     .brand-title h1 {
-      font-size: 18px;
-      font-weight: 700;
+      font-size: 16px;
+      font-weight: 600;
       color: #fff;
+      letter-spacing: -0.2px;
     }
 
     .brand-title span {
       font-size: 12px;
-      color: var(--text-muted);
+      color: var(--text-dim);
     }
 
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
+      gap: 6px;
+      padding: 7px 14px;
       border-radius: var(--radius-sm);
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 12px;
+      font-weight: 500;
       text-decoration: none;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
       border: 1px solid transparent;
     }
 
     .btn-primary {
-      background: var(--primary);
-      color: #fff;
+      background: #fafafa;
+      color: #09090b;
     }
     .btn-primary:hover {
-      background: var(--primary-hover);
-      box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
+      background: #e4e4e7;
     }
 
     .btn-secondary {
       background: var(--bg-card);
-      border-color: var(--border-color);
-      color: var(--text-main);
+      border-color: var(--border);
+      color: var(--text-muted);
     }
     .btn-secondary:hover {
       background: var(--bg-card-hover);
+      color: #fff;
       border-color: var(--border-focus);
     }
 
     .container {
       max-width: 1440px;
       margin: 0 auto;
-      padding: 32px 24px;
+      padding: 28px 24px;
     }
 
     .hero-header h2 {
-      font-size: 30px;
-      font-weight: 800;
+      font-size: 24px;
+      font-weight: 700;
       letter-spacing: -0.5px;
-      margin-bottom: 8px;
-      background: linear-gradient(to right, #60a5fa, #a78bfa, #38bdf8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+      color: #ffffff;
     }
 
     .hero-header p {
       color: var(--text-muted);
-      font-size: 15px;
-      max-width: 900px;
+      font-size: 14px;
+      max-width: 820px;
       margin-bottom: 24px;
     }
 
     .metrics-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
     }
 
     .metric-card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 20px;
+      padding: 16px 18px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .metric-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
+      gap: 4px;
     }
 
     .metric-value {
-      font-size: 32px;
-      font-weight: 800;
+      font-size: 26px;
+      font-weight: 700;
       color: #fff;
+      letter-spacing: -0.5px;
     }
 
     .metric-label {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
     .metric-sub {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-dim);
     }
 
     .controls-panel {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 22px;
-      margin-bottom: 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      margin-bottom: 28px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .search-row {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
+      gap: 14px;
     }
 
     .search-box {
-      flex: 1;
-      min-width: 280px;
       position: relative;
+      width: 100%;
     }
 
     .search-box input {
       width: 100%;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      padding: 12px 16px 12px 42px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px 10px 38px;
       border-radius: var(--radius-sm);
-      font-size: 14px;
+      font-size: 13px;
       outline: none;
-      transition: all 0.2s;
+      transition: border-color 0.15s;
     }
 
     .search-box input:focus {
       border-color: var(--border-focus);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
     }
 
     .search-icon {
       position: absolute;
-      left: 14px;
+      left: 12px;
       top: 50%;
       transform: translateY(-50%);
-      color: var(--text-muted);
-      font-size: 16px;
+      color: var(--text-dim);
+      font-size: 14px;
     }
 
     .filter-pills-row {
@@ -1384,48 +1371,48 @@ function generateHTML() {
 
     .filter-group {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
       align-items: center;
     }
 
     .filter-label {
-      font-size: 12px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 600;
       color: var(--text-dim);
       text-transform: uppercase;
+      letter-spacing: 0.5px;
       margin-right: 4px;
-      min-width: 70px;
+      min-width: 60px;
     }
 
     .pill {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
       color: var(--text-muted);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 16px;
+      font-size: 11px;
+      font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.15s;
     }
 
     .pill:hover {
-      background: var(--bg-card-hover);
       color: #fff;
+      border-color: var(--border-focus);
     }
 
     .pill.active {
-      background: var(--primary);
+      background: #27272a;
       color: #fff;
-      border-color: var(--primary);
-      box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+      border-color: #52525b;
     }
 
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(430px, 1fr));
+      gap: 18px;
     }
 
     @media (max-width: 768px) {
@@ -1436,27 +1423,25 @@ function generateHTML() {
 
     .feature-card {
       background: var(--bg-card);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 20px;
+      padding: 18px;
       display: flex;
       flex-direction: column;
       gap: 14px;
-      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+      transition: border-color 0.15s;
     }
 
     .feature-card:hover {
       border-color: var(--border-focus);
-      box-shadow: var(--shadow-md);
     }
 
     .feature-card.has-issue {
       border-color: #ef4444 !important;
-      box-shadow: 0 0 16px rgba(239, 68, 68, 0.25) !important;
     }
 
     .feature-card.is-fixed {
-      border-left: 4px solid #06b6d4;
+      border-left: 3px solid #3b82f6;
     }
 
     .feature-card-header {
@@ -1467,54 +1452,56 @@ function generateHTML() {
     }
 
     .feature-name {
-      font-size: 16px;
-      font-weight: 700;
+      font-size: 15px;
+      font-weight: 600;
       color: #fff;
+      letter-spacing: -0.2px;
     }
 
     .feature-submodule {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-dim);
       margin-top: 2px;
     }
 
     .feature-route {
       display: inline-block;
-      font-family: monospace;
-      font-size: 12px;
-      background: #090e17;
-      color: #38bdf8;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      background: var(--bg-subtle);
+      color: #d4d4d8;
       padding: 3px 8px;
       border-radius: 4px;
-      border: 1px solid rgba(56, 189, 248, 0.2);
+      border: 1px solid var(--border);
       text-decoration: none;
-      transition: all 0.2s;
+      transition: border-color 0.15s, color 0.15s;
       white-space: nowrap;
     }
 
     .feature-route:hover {
-      background: #0284c7;
+      border-color: var(--border-focus);
       color: #fff;
     }
 
     .feature-desc {
-      font-size: 13px;
+      font-size: 12.5px;
       color: var(--text-muted);
-      line-height: 1.5;
+      line-height: 1.45;
     }
 
     .capabilities {
-      background: rgba(0, 0, 0, 0.25);
+      background: #0f0f12;
       border-radius: var(--radius-sm);
       padding: 10px 12px;
-      border-left: 3px solid var(--primary);
+      border: 1px solid var(--border-subtle);
     }
 
     .capabilities-title {
-      font-size: 11px;
-      font-weight: 700;
+      font-size: 10.5px;
+      font-weight: 600;
       color: var(--text-dim);
       text-transform: uppercase;
+      letter-spacing: 0.5px;
       margin-bottom: 6px;
     }
 
@@ -1526,31 +1513,32 @@ function generateHTML() {
     }
 
     .capabilities li {
-      font-size: 12px;
-      color: #cbd5e1;
+      font-size: 11.5px;
+      color: #d4d4d8;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 6px;
+      line-height: 1.4;
     }
 
-    .capabilities li::before {
-      content: '✔';
-      color: var(--success);
-      font-size: 11px;
+    .bullet {
+      color: var(--text-dim);
+      font-size: 14px;
+      line-height: 1;
     }
 
     /* Fixed Issues Box */
     .fixed-issues-box {
-      background: rgba(6, 182, 212, 0.08);
-      border: 1px solid rgba(6, 182, 212, 0.25);
+      background: #0e1117;
+      border: 1px solid #1e2638;
       border-radius: var(--radius-sm);
       padding: 10px 12px;
     }
 
     .fixed-issues-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: #22d3ee;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #93c5fd;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -1559,15 +1547,15 @@ function generateHTML() {
     .btn-toggle-fixed {
       background: transparent;
       border: none;
-      color: #38bdf8;
+      color: #60a5fa;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 500;
       cursor: pointer;
       padding: 2px 6px;
-      border-radius: 4px;
+      border-radius: 3px;
     }
     .btn-toggle-fixed:hover {
-      background: rgba(56, 189, 248, 0.15);
+      background: rgba(96, 165, 250, 0.1);
     }
 
     .fixed-issues-list {
@@ -1576,33 +1564,34 @@ function generateHTML() {
       flex-direction: column;
       gap: 6px;
       padding-top: 6px;
-      border-top: 1px solid rgba(6, 182, 212, 0.15);
+      border-top: 1px solid #1e2638;
     }
 
     .fixed-issue-item {
       display: flex;
       align-items: flex-start;
       gap: 8px;
-      font-size: 12px;
+      font-size: 11.5px;
       color: #e2e8f0;
       line-height: 1.4;
     }
 
     .badge-fix {
-      background: #0891b2;
-      color: #fff;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #93c5fd;
       font-size: 10px;
-      font-weight: 800;
-      padding: 1px 6px;
+      font-weight: 700;
+      padding: 1px 5px;
       border-radius: 3px;
-      font-family: monospace;
+      font-family: ui-monospace, monospace;
       flex-shrink: 0;
     }
 
     /* QA / QI Inspection Box */
     .qa-inspection-box {
-      background: #0f172a;
-      border: 1px solid var(--border-color);
+      background: #0d0d10;
+      border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 12px;
       display: flex;
@@ -1618,62 +1607,174 @@ function generateHTML() {
     }
 
     .qa-box-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: #94a3b8;
-      letter-spacing: 0.3px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .qa-status-select {
       background: var(--bg-card);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       color: #fff;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 4px;
       outline: none;
       cursor: pointer;
     }
 
-    .qa-notes-input {
-      width: 100%;
-      background: #090e17;
-      border: 1px solid #1e293b;
-      color: #f1f5f9;
-      font-family: inherit;
-      font-size: 12px;
-      padding: 8px 10px;
-      border-radius: 6px;
-      resize: vertical;
-      min-height: 52px;
-      outline: none;
-      line-height: 1.4;
-      transition: border-color 0.2s;
+    /* Dedicated Notes Section */
+    .qa-notes-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border-subtle);
     }
 
-    .qa-notes-input:focus {
+    .qa-notes-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .qa-notes-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+    }
+
+    .notes-count-badge {
+      font-size: 10px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+
+    /* Notes Log List */
+    .qa-notes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    .note-item {
+      background: #141418;
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .note-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .btn-delete-note {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0 4px;
+      line-height: 1;
+    }
+    .btn-delete-note:hover {
+      color: #ef4444;
+    }
+
+    .note-text {
+      font-size: 11.5px;
+      color: #e4e4e7;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .no-notes-placeholder {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-style: italic;
+      padding: 4px 0;
+    }
+
+    /* Add Note Controls */
+    .qa-add-note-box {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .qa-note-input-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .qa-note-input {
+      flex: 1;
+      background: #09090b;
+      border: 1px solid var(--border);
+      color: #fff;
+      font-family: inherit;
+      font-size: 11.5px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .qa-note-input:focus {
       border-color: var(--border-focus);
+    }
+
+    .btn-add-note {
+      background: #27272a;
+      border: 1px solid var(--border);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    .btn-add-note:hover {
+      background: #3f3f46;
     }
 
     .qa-quick-stamps {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       flex-wrap: wrap;
     }
 
     .stamps-label {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--text-dim);
-      font-weight: 600;
+      font-weight: 500;
     }
 
     .btn-stamp {
-      background: #1e293b;
-      border: 1px solid #334155;
-      color: #cbd5e1;
-      font-size: 11px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 10.5px;
       padding: 2px 7px;
       border-radius: 4px;
       cursor: pointer;
@@ -1681,9 +1782,9 @@ function generateHTML() {
     }
 
     .btn-stamp:hover {
-      background: var(--primary);
-      border-color: var(--primary);
+      background: #27272a;
       color: #fff;
+      border-color: var(--border-focus);
     }
 
     .feature-tags {
@@ -1695,56 +1796,75 @@ function generateHTML() {
     }
 
     .tag {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 8px;
+      font-size: 10.5px;
+      font-weight: 500;
+      padding: 2px 7px;
       border-radius: 4px;
     }
 
     .tag-cloud {
-      background: rgba(6, 182, 212, 0.15);
-      color: #22d3ee;
-      border: 1px solid rgba(6, 182, 212, 0.3);
+      background: #141c2b;
+      color: #93c5fd;
+      border: 1px solid #1e293b;
     }
 
     .tag-api {
-      background: rgba(245, 158, 11, 0.15);
-      color: #fbbf24;
-      border: 1px solid rgba(245, 158, 11, 0.3);
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      font-family: ui-monospace, monospace;
     }
 
     .tag-status-passed {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: rgba(34, 197, 94, 0.1);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.25);
     }
 
     .tag-status-fixed {
-      background: rgba(6, 182, 212, 0.2);
-      color: #38bdf8;
-      border: 1px solid rgba(6, 182, 212, 0.4);
+      background: rgba(59, 130, 246, 0.1);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.25);
     }
 
     .tag-status-issue {
-      background: rgba(239, 68, 68, 0.2);
+      background: rgba(239, 68, 68, 0.1);
       color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.4);
+      border: 1px solid rgba(239, 68, 68, 0.25);
     }
 
     .tag-status-pending {
-      background: rgba(100, 116, 139, 0.2);
-      color: #94a3b8;
-      border: 1px solid rgba(100, 116, 139, 0.4);
+      background: rgba(161, 161, 170, 0.1);
+      color: #a1a1aa;
+      border: 1px solid rgba(161, 161, 170, 0.25);
     }
 
     footer {
       max-width: 1440px;
       margin: 40px auto 0;
       padding: 24px;
-      border-top: 1px solid var(--border-color);
+      border-top: 1px solid var(--border);
       text-align: center;
       color: var(--text-dim);
-      font-size: 13px;
+      font-size: 12px;
+    }
+
+    @media print {
+      header, .controls-panel, .qa-add-note-box, .btn-toggle-fixed, .btn-delete-note {
+        display: none !important;
+      }
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      .feature-card {
+        border: 1px solid #ccc !important;
+        background: #fff !important;
+        page-break-inside: avoid;
+      }
+      .feature-name, .feature-desc, .capabilities li, .note-text {
+        color: #000 !important;
+      }
     }
   </style>
 </head>
@@ -1754,15 +1874,15 @@ function generateHTML() {
     <div class="brand">
       <div class="brand-logo">AF</div>
       <div class="brand-title">
-        <h1>ApexFleet SaaS - QA &amp; QI Inspection Suite</h1>
-        <span>Live Verification, Defect Tracker &amp; Notes Hub • Frontend: http://localhost:3000</span>
+        <h1>ApexFleet SaaS — QA &amp; QI Testing Suite</h1>
+        <span>Live Verification, Defect Tracking &amp; Notes • http://localhost:3000</span>
       </div>
     </div>
     <div class="header-actions">
-      <button class="btn btn-secondary" onclick="exportQAReport()">📥 Export QA Audit JSON</button>
-      <button class="btn btn-secondary" onclick="window.print()">🖨️ Print Run Sheet</button>
-      <button class="btn btn-secondary" onclick="resetAllQATests()">🔄 Reset All Notes</button>
-      <a href="http://localhost:3000" target="_blank" class="btn btn-primary">🚀 Launch Frontend App</a>
+      <button class="btn btn-secondary" onclick="exportQAReport()">Export Audit JSON</button>
+      <button class="btn btn-secondary" onclick="window.print()">Print Run Sheet</button>
+      <button class="btn btn-secondary" onclick="resetAllQATests()">Reset Notes</button>
+      <a href="http://localhost:3000" target="_blank" class="btn btn-primary">Launch Frontend ↗</a>
     </div>
   </header>
 
@@ -1770,46 +1890,44 @@ function generateHTML() {
 
     <section class="hero">
       <div class="hero-header">
-        <h2>Quality Assurance (QA) &amp; Quality Inspection (QI) Test Matrix</h2>
-        <p>Interactive verification hub with editable tester notes, fixed bug logs, direct feature navigation links, and real-time status management for all 68 frontend enterprise capabilities.</p>
+        <h2>Quality Assurance &amp; Inspection Matrix</h2>
+        <p>Interactive verification platform with real-time tester notes, issue logging, fixed bug history, and direct application routes for all 68 frontend capabilities.</p>
       </div>
 
       <div class="metrics-grid">
         <div class="metric-card">
           <div class="metric-value" id="stat-total">68</div>
           <div class="metric-label">Total Features Tested</div>
-          <div class="metric-sub">Across 18 enterprise modules</div>
+          <div class="metric-sub">Across 18 system modules</div>
         </div>
         <div class="metric-card">
-          <div class="metric-value" id="stat-passed" style="color: #34d399;">52</div>
-          <div class="metric-label">Passed / Verified</div>
+          <div class="metric-value" id="stat-passed">52</div>
+          <div class="metric-label">Verified &amp; Passed</div>
           <div class="metric-sub">Production readiness confirmed</div>
         </div>
         <div class="metric-card">
-          <div class="metric-value" id="stat-fixed" style="color: #38bdf8;">16</div>
+          <div class="metric-value" id="stat-fixed">16</div>
           <div class="metric-label">Fixed &amp; Retested</div>
           <div class="metric-sub">Bugs diagnosed and resolved</div>
         </div>
         <div class="metric-card">
-          <div class="metric-value" id="stat-issues" style="color: #f87171;">0</div>
+          <div class="metric-value" id="stat-issues">0</div>
           <div class="metric-label">Open Defects / Bugs</div>
-          <div class="metric-sub">Current active blockers</div>
+          <div class="metric-sub">Active blocking issues</div>
         </div>
         <div class="metric-card">
-          <div class="metric-value" id="stat-grade" style="color: #a78bfa;">100% (A+)</div>
-          <div class="metric-label">QI Quality Score</div>
-          <div class="metric-sub">Full system pass index</div>
+          <div class="metric-value" id="stat-grade">100% (A+)</div>
+          <div class="metric-label">Quality Score</div>
+          <div class="metric-sub">Comprehensive testing index</div>
         </div>
       </div>
     </section>
 
     <!-- Controls Panel -->
     <section class="controls-panel">
-      <div class="search-row">
-        <div class="search-box">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="searchInput" placeholder="Search by feature name, keyword, route, notes, or defect ID (e.g. 'logo', 'FIX-802', 'profile', 'r2')..." oninput="filterFeatures()">
-        </div>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search features by name, route, keyword, defect ID, or tester notes..." oninput="filterFeatures()">
       </div>
 
       <div class="filter-pills-row">
@@ -1823,16 +1941,17 @@ function generateHTML() {
           <button class="pill" onclick="setCategoryFilter('payments', this)">Billing &amp; Payments</button>
           <button class="pill" onclick="setCategoryFilter('contracts', this)">Contracts &amp; Signatures</button>
           <button class="pill" onclick="setCategoryFilter('settings-branding', this)">Settings &amp; Branding</button>
-          <button class="pill" onclick="setCategoryFilter('print-portal', this)">Print &amp; Public Portal</button>
+          <button class="pill" onclick="setCategoryFilter('print-portal', this)">Print &amp; Portal</button>
         </div>
 
         <div class="filter-group">
-          <span class="filter-label">QA Status:</span>
+          <span class="filter-label">Status:</span>
           <button class="pill active" onclick="setStatusFilter('all', this)">All Statuses</button>
-          <button class="pill" onclick="setStatusFilter('fixed', this)">🔧 Fixed &amp; Retested</button>
-          <button class="pill" onclick="setStatusFilter('passed', this)">🟢 Passed (Verified)</button>
-          <button class="pill" onclick="setStatusFilter('issue', this)">⚠️ Open Issues</button>
-          <button class="pill" onclick="setStatusFilter('cloud', this)">☁️ Cloudflare R2 Features</button>
+          <button class="pill" onclick="setStatusFilter('fixed', this)">Fixed &amp; Retested</button>
+          <button class="pill" onclick="setStatusFilter('passed', this)">Verified / Passed</button>
+          <button class="pill" onclick="setStatusFilter('issue', this)">Open Defects</button>
+          <button class="pill" onclick="setStatusFilter('notes', this)">Has Notes Only</button>
+          <button class="pill" onclick="setStatusFilter('cloud', this)">Cloudflare R2</button>
         </div>
       </div>
     </section>
@@ -1843,7 +1962,7 @@ function generateHTML() {
     </div>
 
     <footer>
-      ApexFleet SaaS Quality Assurance (QA) &amp; Quality Inspection (QI) Test Suite • Generated from N:\\rental\\frontend • Cloud Storage: Cloudflare R2 protofilo
+      ApexFleet SaaS Quality Assurance &amp; Quality Inspection Matrix • Generated from N:\\rental\\frontend
     </footer>
   </div>
 
@@ -1877,6 +1996,101 @@ function generateHTML() {
       filterFeatures();
     }
 
+    // Notes Management System
+    function getFeatureNotes(featureId) {
+      try {
+        const raw = localStorage.getItem('qa_notes_entries_' + featureId);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+
+      // Fallback to legacy single note or default note
+      const legacyNote = localStorage.getItem('qa_notes_' + featureId);
+      const card = document.getElementById('card-' + featureId);
+      const defaultNote = card ? card.getAttribute('data-default-note') : '';
+      const initial = legacyNote || defaultNote;
+      if (initial && initial.trim()) {
+        return [{ id: 1, text: initial.trim(), time: 'Initial QA Sign-off' }];
+      }
+      return [];
+    }
+
+    function saveFeatureNotes(featureId, notesArray) {
+      localStorage.setItem('qa_notes_entries_' + featureId, JSON.stringify(notesArray));
+      renderNotesList(featureId);
+      filterFeatures();
+    }
+
+    function renderNotesList(featureId) {
+      const notes = getFeatureNotes(featureId);
+      const listEl = document.getElementById('notes-list-' + featureId);
+      const countEl = document.getElementById('notes-count-' + featureId);
+      if (!listEl) return;
+
+      countEl.innerText = notes.length + (notes.length === 1 ? ' note' : ' notes');
+
+      if (notes.length === 0) {
+        listEl.innerHTML = '<div class="no-notes-placeholder">No notes added yet. Enter a note or select a quick stamp below.</div>';
+        return;
+      }
+
+      listEl.innerHTML = notes.map(note => \`
+        <div class="note-item">
+          <div class="note-meta">
+            <span>\${note.time}</span>
+            <button type="button" class="btn-delete-note" onclick="deleteNote('\${featureId}', \${note.id})" title="Delete note">✕</button>
+          </div>
+          <div class="note-text">\${escapeHtml(note.text)}</div>
+        </div>
+      \`).join('');
+    }
+
+    function addFeatureNote(featureId, customText) {
+      const inputEl = document.getElementById('note-input-' + featureId);
+      const text = customText || (inputEl ? inputEl.value.trim() : '');
+      if (!text) return;
+
+      const notes = getFeatureNotes(featureId);
+      const now = new Date();
+      const timeStr = now.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      notes.push({
+        id: Date.now(),
+        text: text,
+        time: timeStr
+      });
+
+      saveFeatureNotes(featureId, notes);
+      if (inputEl) inputEl.value = '';
+    }
+
+    function quickAddStamp(featureId, stampText) {
+      addFeatureNote(featureId, stampText);
+    }
+
+    function deleteNote(featureId, noteId) {
+      const notes = getFeatureNotes(featureId).filter(n => n.id !== noteId);
+      saveFeatureNotes(featureId, notes);
+    }
+
+    function handleNoteKey(event, featureId) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        addFeatureNote(featureId);
+      }
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/[&<>"']/g, function(m) {
+        return ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        })[m];
+      });
+    }
+
     function filterFeatures() {
       const q = document.getElementById('searchInput').value.toLowerCase().trim();
       const cards = document.querySelectorAll('.feature-card');
@@ -1886,18 +2100,22 @@ function generateHTML() {
         const status = card.getAttribute('data-status');
         const tags = (card.getAttribute('data-tags') || '').toLowerCase();
         const text = card.innerText.toLowerCase();
-        const notes = (document.getElementById('notes-' + id)?.value || '').toLowerCase();
+        
+        const notes = getFeatureNotes(id);
+        const notesText = notes.map(n => n.text).join(' ').toLowerCase();
 
         const matchesCat = (currentCategory === 'all' || tags.includes(currentCategory));
         
         let matchesStatus = true;
         if (currentStatusFilter === 'cloud') {
           matchesStatus = tags.includes('r2') || tags.includes('cloud');
+        } else if (currentStatusFilter === 'notes') {
+          matchesStatus = notes.length > 0;
         } else if (currentStatusFilter !== 'all') {
           matchesStatus = (status === currentStatusFilter);
         }
 
-        const matchesSearch = !q || text.includes(q) || notes.includes(q);
+        const matchesSearch = !q || text.includes(q) || notesText.includes(q);
 
         if (matchesCat && matchesStatus && matchesSearch) {
           card.style.display = 'flex';
@@ -1913,7 +2131,7 @@ function generateHTML() {
 
       card.setAttribute('data-status', newStatus);
       badge.className = 'tag tag-status-' + newStatus;
-      badge.innerText = 'Status: ' + newStatus.toUpperCase();
+      badge.innerText = newStatus.toUpperCase();
 
       if (newStatus === 'issue') {
         card.classList.add('has-issue');
@@ -1928,19 +2146,6 @@ function generateHTML() {
 
       localStorage.setItem('qa_status_' + featureId, newStatus);
       recalculateStats();
-    }
-
-    function saveFeatureNotes(featureId) {
-      const val = document.getElementById('notes-' + featureId).value;
-      localStorage.setItem('qa_notes_' + featureId, val);
-    }
-
-    function addStamp(featureId, stampText) {
-      const textarea = document.getElementById('notes-' + featureId);
-      const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const addition = '[' + stampText + ' at ' + timestamp + '] ';
-      textarea.value = addition + textarea.value;
-      saveFeatureNotes(featureId);
     }
 
     function recalculateStats() {
@@ -1966,7 +2171,7 @@ function generateHTML() {
       let grade = 'A+';
       if (score < 90) grade = 'B';
       if (score < 75) grade = 'C';
-      if (issues > 0) grade = 'Needs Action';
+      if (issues > 0) grade = 'Action Needed';
 
       document.getElementById('stat-grade').innerText = score + '% (' + grade + ')';
     }
@@ -1982,11 +2187,7 @@ function generateHTML() {
           changeFeatureStatus(id, savedStatus);
         }
 
-        const savedNotes = localStorage.getItem('qa_notes_' + id);
-        if (savedNotes !== null) {
-          const textarea = document.getElementById('notes-' + id);
-          if (textarea) textarea.value = savedNotes;
-        }
+        renderNotesList(id);
       });
       recalculateStats();
     }
@@ -1999,7 +2200,7 @@ function generateHTML() {
         const id = card.getAttribute('data-id');
         const name = card.querySelector('.feature-name')?.innerText || id;
         const status = card.getAttribute('data-status');
-        const notes = document.getElementById('notes-' + id)?.value || '';
+        const notes = getFeatureNotes(id);
 
         report.push({
           id,
@@ -2019,12 +2220,13 @@ function generateHTML() {
     }
 
     function resetAllQATests() {
-      if (confirm('Reset all QA/QI test notes and restore default statuses?')) {
+      if (confirm('Reset all QA/QI tester notes and restore default statuses?')) {
         const cards = document.querySelectorAll('.feature-card');
         cards.forEach(card => {
           const id = card.getAttribute('data-id');
           localStorage.removeItem('qa_status_' + id);
           localStorage.removeItem('qa_notes_' + id);
+          localStorage.removeItem('qa_notes_entries_' + id);
         });
         window.location.reload();
       }
@@ -2042,3 +2244,5 @@ function generateHTML() {
 const targetPath = path.join(__dirname, 'index.html');
 fs.writeFileSync(targetPath, generateHTML(), 'utf8');
 console.log('Successfully generated complete QA & QI index.html at ' + targetPath);
+
+
