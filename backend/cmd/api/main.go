@@ -160,11 +160,11 @@ func main() {
 
 	authMiddleware := auth.RequireAuth(cfg.JWTSecret)
 
-	authService := auth.NewService(pool, cfg)
-	authHandler := auth.NewHandler(authService, cfg.JWTSecret)
-
 	tenantService := tenant.NewService(pool)
 	tenantHandler := tenant.NewHandler(tenantService, cfg.JWTSecret)
+
+	authService := auth.NewService(pool, cfg, tenantService)
+	authHandler := auth.NewHandler(authService, cfg.JWTSecret)
 
 	userService := user.NewService(pool)
 	userHandler := user.NewHandler(userService, cfg.JWTSecret)

@@ -11,6 +11,7 @@ import {
   Tabs,
   Badge,
   Segmented,
+  Empty,
 } from 'antd'
 import {
   DollarOutlined,
@@ -249,14 +250,25 @@ export const DashboardPage: React.FC = () => {
             title="Fleet Status"
             loading={kpiLoading}
           >
-            <Pie {...fleetPieConfig} />
-            <div style={{ marginTop: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                <span>Occupancy Rate</span>
-                <strong>{rentedPct}%</strong>
+            {fleetTotal > 0 ? (
+              <>
+                <Pie {...fleetPieConfig} />
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                    <span>Occupancy Rate</span>
+                    <strong>{rentedPct}%</strong>
+                  </div>
+                  <Progress percent={rentedPct} status="active" strokeColor="#1677ff" />
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: '36px 0', textAlign: 'center' }}>
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No fleet vehicles registered yet" />
+                <Button type="primary" size="small" icon={<CarOutlined />} onClick={() => navigate('/vehicles/new')} style={{ marginTop: 12 }}>
+                  Add First Vehicle
+                </Button>
               </div>
-              <Progress percent={rentedPct} status="active" strokeColor="#1677ff" />
-            </div>
+            )}
           </ChartCard>
         </Col>
       </Row>
@@ -268,7 +280,13 @@ export const DashboardPage: React.FC = () => {
             title="Revenue by Category"
             loading={catLoading}
           >
-            <Column {...categoryChartConfig} />
+            {categoryRevenue && categoryRevenue.length > 0 ? (
+              <Column {...categoryChartConfig} />
+            ) : (
+              <div style={{ padding: '40px 0', textAlign: 'center' }}>
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No revenue records yet" />
+              </div>
+            )}
           </ChartCard>
         </Col>
 

@@ -66,7 +66,7 @@ export const OnboardingPage: React.FC = () => {
   const [rulesForm] = Form.useForm()
 
   // Selected starter option for Step 3
-  const [starterOption, setStarterOption] = useState<'sample' | 'blank'>('sample')
+  const [starterOption, setStarterOption] = useState<'sample' | 'blank'>('blank')
   const [completed, setCompleted] = useState(false)
 
   // Logo upload state

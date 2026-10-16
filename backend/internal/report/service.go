@@ -37,17 +37,20 @@ func (s *Service) GetDashboardSummary(ctx context.Context, tenantID uuid.UUID) (
 func (s *Service) GetDashboardSummaryWithDays(ctx context.Context, tenantID uuid.UUID, days int) (*DashboardSummary, error) {
 	if s.pool == nil {
 		return &DashboardSummary{
-			TotalVehicles:       24,
-			AvailableVehicles:   18,
-			RentedVehicles:      5,
-			MaintenanceVehicles: 1,
-			UtilizationRate:     78.5,
-			ActiveBookings:      5,
-			TotalBookings:       128,
-			TotalRevenue:        54200,
-			TotalExpenses:       16400,
-			NetProfit:           37800,
-			OutstandingBalance:  3200,
+			TotalVehicles:       0,
+			AvailableVehicles:   0,
+			RentedVehicles:      0,
+			MaintenanceVehicles: 0,
+			UtilizationRate:     0,
+			ActiveBookings:      0,
+			TotalBookings:       0,
+			TotalRevenue:        0,
+			TodayRevenue:        0,
+			TodayBookings:       0,
+			PendingPayments:     0,
+			TotalExpenses:       0,
+			NetProfit:           0,
+			OutstandingBalance:  0,
 			Currency:            "NPR",
 			CurrencySymbol:      "Rs.",
 		}, nil
@@ -120,22 +123,11 @@ func (s *Service) GetFinancialPnL(ctx context.Context, tenantID uuid.UUID, basis
 
 	if s.pool == nil {
 		pnl.Currency = "NPR"
-		if basis == "cash" {
-			pnl.TotalRevenue = 49800
-			pnl.RentalRevenue = 45000
-			pnl.ExtraRevenue = 4800
-		} else {
-			pnl.TotalRevenue = 54200
-			pnl.RentalRevenue = 49000
-			pnl.ExtraRevenue = 5200
-		}
-		pnl.TotalExpenses = 16400
-		pnl.ExpensesByCategory["fleet_maintenance"] = 5600
-		pnl.ExpensesByCategory["insurance"] = 4200
-		pnl.ExpensesByCategory["fuel_and_charging"] = 2400
-		pnl.ExpensesByCategory["facility_rent"] = 3100
-		pnl.ExpensesByCategory["detailing"] = 1100
-		pnl.NetProfit = pnl.TotalRevenue - pnl.TotalExpenses
+		pnl.TotalRevenue = 0
+		pnl.RentalRevenue = 0
+		pnl.ExtraRevenue = 0
+		pnl.TotalExpenses = 0
+		pnl.NetProfit = 0
 		return &pnl, nil
 	}
 
@@ -188,13 +180,7 @@ func (s *Service) GetFinancialPnL(ctx context.Context, tenantID uuid.UUID, basis
 
 func (s *Service) GetFleetUtilization(ctx context.Context, tenantID uuid.UUID) ([]FleetUtilizationItem, error) {
 	if s.pool == nil {
-		return []FleetUtilizationItem{
-			{VehicleID: "v1", PlateNumber: "BA-1-PA-2024", MakeModel: "Toyota Prado SUV", Status: "rented", TotalBookings: 14, DaysRented: 24, UtilizationRate: 80, Revenue: 21500},
-			{VehicleID: "v2", PlateNumber: "BA-2-CHA-3045", MakeModel: "Honda CR-V", Status: "available", TotalBookings: 11, DaysRented: 20, UtilizationRate: 67, Revenue: 14800},
-			{VehicleID: "v3", PlateNumber: "BA-3-KA-1122", MakeModel: "BYD Atto 3 EV", Status: "rented", TotalBookings: 9, DaysRented: 22, UtilizationRate: 73, Revenue: 10400},
-			{VehicleID: "v4", PlateNumber: "BA-4-PA-8890", MakeModel: "Royal Enfield 350", Status: "available", TotalBookings: 7, DaysRented: 15, UtilizationRate: 50, Revenue: 4900},
-			{VehicleID: "v5", PlateNumber: "BA-5-CHA-9912", MakeModel: "Vespa Elegante 150", Status: "available", TotalBookings: 5, DaysRented: 12, UtilizationRate: 40, Revenue: 2600},
-		}, nil
+		return []FleetUtilizationItem{}, nil
 	}
 
 	query := `
@@ -237,40 +223,38 @@ func (s *Service) getDefaultRevenueTrends(days int) []TimeSeriesPoint {
 	if days <= 30 {
 		for i := 29; i >= 0; i-- {
 			d := now.AddDate(0, 0, -i)
-			amt := 1200.0 + float64((i*37)%1800)
 			list = append(list, TimeSeriesPoint{
 				Date:    d.Format("2006-01-02"),
-				Amount:  amt,
-				Revenue: amt,
-				Count:   1 + (i % 3),
+				Amount:  0,
+				Revenue: 0,
+				Count:   0,
 			})
 		}
 	} else if days <= 90 {
 		for i := 11; i >= 0; i-- {
 			d := now.AddDate(0, 0, -i*7)
-			amt := 8500.0 + float64((i*411)%4200)
 			list = append(list, TimeSeriesPoint{
 				Date:    d.Format("2006-01-02"),
-				Amount:  amt,
-				Revenue: amt,
-				Count:   4 + (i % 5),
+				Amount:  0,
+				Revenue: 0,
+				Count:   0,
 			})
 		}
 	} else {
 		// Monthly points for YTD or 365d
 		for i := 6; i >= 0; i-- {
 			d := now.AddDate(0, -i, 0)
-			amt := 38000.0 + float64((i*3200)%18000)
 			list = append(list, TimeSeriesPoint{
 				Date:    d.Format("2006-01"),
-				Amount:  amt,
-				Revenue: amt,
-				Count:   80 + (i * 8),
+				Amount:  0,
+				Revenue: 0,
+				Count:   0,
 			})
 		}
 	}
 	return list
 }
+
 
 func (s *Service) GetRevenueTimeSeries(ctx context.Context, tenantID uuid.UUID, days int) ([]TimeSeriesPoint, error) {
 	if days <= 0 {
@@ -335,15 +319,7 @@ func (s *Service) GetRevenueTimeSeries(ctx context.Context, tenantID uuid.UUID, 
 
 func (s *Service) GetBookingsTimeSeries(ctx context.Context, tenantID uuid.UUID, days int) ([]TimeSeriesPoint, error) {
 	if s.pool == nil {
-		return []TimeSeriesPoint{
-			{Date: "2026-04", Amount: 38200, Count: 84},
-			{Date: "2026-05", Amount: 42100, Count: 96},
-			{Date: "2026-06", Amount: 48900, Count: 112},
-			{Date: "2026-07", Amount: 53400, Count: 124},
-			{Date: "2026-08", Amount: 56800, Count: 138},
-			{Date: "2026-09", Amount: 51200, Count: 119},
-			{Date: "2026-10", Amount: 54200, Count: 128},
-		}, nil
+		return []TimeSeriesPoint{}, nil
 	}
 
 	if days <= 0 {
@@ -383,13 +359,7 @@ func (s *Service) GetCategoryRevenue(ctx context.Context, tenantID uuid.UUID) ([
 
 func (s *Service) GetCategoryRevenueWithDays(ctx context.Context, tenantID uuid.UUID, days int) ([]CategoryRevenueItem, error) {
 	if s.pool == nil {
-		return []CategoryRevenueItem{
-			{Category: "Premium SUV", Revenue: 21500, Count: 42},
-			{Category: "Executive Sedan", Revenue: 14800, Count: 38},
-			{Category: "Electric EV", Revenue: 10400, Count: 26},
-			{Category: "Sport Motorcycle", Revenue: 4900, Count: 14},
-			{Category: "Urban Scooter", Revenue: 2600, Count: 8},
-		}, nil
+		return []CategoryRevenueItem{}, nil
 	}
 
 	if days <= 0 {
@@ -423,16 +393,6 @@ func (s *Service) GetCategoryRevenueWithDays(ctx context.Context, tenantID uuid.
 			return nil, err
 		}
 		list = append(list, item)
-	}
-
-	if len(list) == 0 {
-		return []CategoryRevenueItem{
-			{Category: "Premium SUV", Revenue: 21500, Count: 42},
-			{Category: "Executive Sedan", Revenue: 14800, Count: 38},
-			{Category: "Electric EV", Revenue: 10400, Count: 26},
-			{Category: "Sport Motorcycle", Revenue: 4900, Count: 14},
-			{Category: "Urban Scooter", Revenue: 2600, Count: 8},
-		}, nil
 	}
 
 	return list, nil

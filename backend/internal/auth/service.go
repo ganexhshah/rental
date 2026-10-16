@@ -19,13 +19,22 @@ var (
 	ErrSlugAlreadyTaken  = errors.New("company slug is already in use")
 )
 
-type Service struct {
-	pool *pgxpool.Pool
-	cfg  *config.Config
+type TenantRegistrar interface {
+	RegisterInMemoryTenant(id uuid.UUID, name, slug, currency, symbol, timezone string)
 }
 
-func NewService(pool *pgxpool.Pool, cfg *config.Config) *Service {
-	return &Service{pool: pool, cfg: cfg}
+type Service struct {
+	pool      *pgxpool.Pool
+	cfg       *config.Config
+	tenantReg TenantRegistrar
+}
+
+func NewService(pool *pgxpool.Pool, cfg *config.Config, tenantReg ...TenantRegistrar) *Service {
+	var tr TenantRegistrar
+	if len(tenantReg) > 0 {
+		tr = tenantReg[0]
+	}
+	return &Service{pool: pool, cfg: cfg, tenantReg: tr}
 }
 
 func (s *Service) Register(ctx context.Context, req RegisterRequest) (*AuthResponse, error) {
@@ -43,6 +52,9 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*AuthRespo
 		symbol := s.cfg.DefaultCurrencySymbol
 		if currency != "NPR" {
 			symbol = "$"
+		}
+		if s.tenantReg != nil {
+			s.tenantReg.RegisterInMemoryTenant(tenantID, req.CompanyName, slug, currency, symbol, s.cfg.Timezone)
 		}
 		tokenPair, err := GenerateTokenPair(s.cfg.JWTSecret, s.cfg.JWTRefreshSecret, userID, tenantID, req.Email, "admin", s.cfg.JWTAccessTTL, s.cfg.JWTRefreshTTL)
 		if err != nil {

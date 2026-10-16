@@ -4,32 +4,72 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Service struct {
-	pool *pgxpool.Pool
+	pool            *pgxpool.Pool
+	mu              sync.RWMutex
+	inMemoryTenants map[uuid.UUID]*Tenant
 }
 
 func NewService(pool *pgxpool.Pool) *Service {
-	return &Service{pool: pool}
+	return &Service{
+		pool:            pool,
+		inMemoryTenants: make(map[uuid.UUID]*Tenant),
+	}
+}
+
+func (s *Service) RegisterInMemoryTenant(id uuid.UUID, name, slug, currency, symbol, timezone string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.inMemoryTenants == nil {
+		s.inMemoryTenants = make(map[uuid.UUID]*Tenant)
+	}
+	s.inMemoryTenants[id] = &Tenant{
+		ID:             id,
+		Name:           name,
+		Slug:           slug,
+		Currency:       currency,
+		CurrencySymbol: symbol,
+		Timezone:       timezone,
+		Plan:           "enterprise",
+		Status:         "active",
+		Settings:       json.RawMessage(`{}`),
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
+	}
 }
 
 func (s *Service) GetCurrentTenant(ctx context.Context, tenantID uuid.UUID) (*Tenant, error) {
 	if s.pool == nil {
-		return &Tenant{
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if s.inMemoryTenants == nil {
+			s.inMemoryTenants = make(map[uuid.UUID]*Tenant)
+		}
+		if t, ok := s.inMemoryTenants[tenantID]; ok {
+			return t, nil
+		}
+		t := &Tenant{
 			ID:             tenantID,
-			Name:           "Apex Car & Bike Rentals",
-			Slug:           "apex-rentals",
+			Name:           "Rental Fleet Co.",
+			Slug:           "rental-fleet",
 			Currency:       "NPR",
 			CurrencySymbol: "Rs.",
 			Timezone:       "Asia/Kathmandu",
 			Plan:           "enterprise",
 			Status:         "active",
 			Settings:       json.RawMessage(`{}`),
-		}, nil
+			CreatedAt:      time.Now().UTC(),
+			UpdatedAt:      time.Now().UTC(),
+		}
+		s.inMemoryTenants[tenantID] = t
+		return t, nil
 	}
 
 	var t Tenant
@@ -49,6 +89,15 @@ func (s *Service) GetCurrentTenant(ctx context.Context, tenantID uuid.UUID) (*Te
 }
 
 func (s *Service) GetTenantBySlugOrID(ctx context.Context, identifier string) (*Tenant, error) {
+	s.mu.RLock()
+	for _, memTenant := range s.inMemoryTenants {
+		if memTenant.Slug == identifier || memTenant.ID.String() == identifier {
+			s.mu.RUnlock()
+			return memTenant, nil
+		}
+	}
+	s.mu.RUnlock()
+
 	name := "Apex Car & Bike Rentals"
 	slug := identifier
 	if identifier == "ridersone" || identifier == "riders-one" {
@@ -93,28 +142,51 @@ func (s *Service) GetTenantBySlugOrID(ctx context.Context, identifier string) (*
 }
 
 func (s *Service) UpdateCurrentTenant(ctx context.Context, tenantID uuid.UUID, req UpdateTenantRequest) (*Tenant, error) {
+	if s.pool == nil {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if s.inMemoryTenants == nil {
+			s.inMemoryTenants = make(map[uuid.UUID]*Tenant)
+		}
+		t, ok := s.inMemoryTenants[tenantID]
+		if !ok {
+			t = &Tenant{
+				ID:             tenantID,
+				Name:           "Rental Fleet Co.",
+				Slug:           "rental-fleet",
+				Currency:       "NPR",
+				CurrencySymbol: "Rs.",
+				Timezone:       "Asia/Kathmandu",
+				Plan:           "enterprise",
+				Status:         "active",
+				Settings:       json.RawMessage(`{}`),
+				CreatedAt:      time.Now().UTC(),
+				UpdatedAt:      time.Now().UTC(),
+			}
+			s.inMemoryTenants[tenantID] = t
+		}
+		if req.Name != nil {
+			t.Name = *req.Name
+		}
+		if req.Currency != nil {
+			t.Currency = *req.Currency
+		}
+		if req.CurrencySymbol != nil {
+			t.CurrencySymbol = *req.CurrencySymbol
+		}
+		if req.Timezone != nil {
+			t.Timezone = *req.Timezone
+		}
+		if req.Settings != nil {
+			t.Settings = *req.Settings
+		}
+		t.UpdatedAt = time.Now().UTC()
+		return t, nil
+	}
+
 	current, err := s.GetCurrentTenant(ctx, tenantID)
 	if err != nil {
 		return nil, err
-	}
-
-	if s.pool == nil {
-		if req.Name != nil {
-			current.Name = *req.Name
-		}
-		if req.Currency != nil {
-			current.Currency = *req.Currency
-		}
-		if req.CurrencySymbol != nil {
-			current.CurrencySymbol = *req.CurrencySymbol
-		}
-		if req.Timezone != nil {
-			current.Timezone = *req.Timezone
-		}
-		if req.Settings != nil {
-			current.Settings = *req.Settings
-		}
-		return current, nil
 	}
 
 	if req.Name != nil {
