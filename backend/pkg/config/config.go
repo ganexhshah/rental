@@ -25,9 +25,44 @@ type Config struct {
 	KhaltiSecretKey       string
 	StripeSecretKey       string
 	StripeWebhookSecret   string
+
+	// Cloudflare R2 / AWS S3 Cloud Object Storage
+	R2AccountID       string
+	R2AccessKeyID     string
+	R2SecretAccessKey string
+	R2BucketName      string
+	R2Endpoint        string
+	R2PublicURL       string
+	R2CustomDomain    string
+}
+
+func loadEnvFile() {
+	paths := []string{".env", "./backend/.env", "../.env"}
+	for _, p := range paths {
+		if data, err := os.ReadFile(p); err == nil {
+			lines := strings.Split(string(data), "\n")
+			for _, line := range lines {
+				line = strings.TrimSpace(line)
+				if line == "" || strings.HasPrefix(line, "#") {
+					continue
+				}
+				parts := strings.SplitN(line, "=", 2)
+				if len(parts) == 2 {
+					key := strings.TrimSpace(parts[0])
+					val := strings.Trim(strings.TrimSpace(parts[1]), "\"'")
+					if os.Getenv(key) == "" {
+						os.Setenv(key, val)
+					}
+				}
+			}
+			break
+		}
+	}
 }
 
 func Load() (*Config, error) {
+	loadEnvFile()
+
 	cfg := &Config{
 		Env:                   getEnv("ENV", "development"),
 		Port:                  getEnv("PORT", "8080"),
@@ -45,6 +80,15 @@ func Load() (*Config, error) {
 		KhaltiSecretKey:       getEnv("KHALTI_SECRET_KEY", "test_secret_key_6789"),
 		StripeSecretKey:       getEnv("STRIPE_SECRET_KEY", "sk_test_placeholder_rental"),
 		StripeWebhookSecret:   getEnv("STRIPE_WEBHOOK_SECRET", "whsec_placeholder"),
+
+		// Cloudflare R2 / S3 Storage
+		R2AccountID:       getEnv("R2_ACCOUNT_ID", getEnv("S3_ACCOUNT_ID", "")),
+		R2AccessKeyID:     getEnv("R2_ACCESS_KEY_ID", getEnv("S3_ACCESS_KEY_ID", "")),
+		R2SecretAccessKey: getEnv("R2_SECRET_ACCESS_KEY", getEnv("S3_SECRET_ACCESS_KEY", "")),
+		R2BucketName:      getEnv("R2_BUCKET_NAME", getEnv("S3_BUCKET", "protofilo")),
+		R2Endpoint:        getEnv("R2_ENDPOINT", getEnv("S3_ENDPOINT", "")),
+		R2PublicURL:       getEnv("R2_PUBLIC_URL", getEnv("S3_PUBLIC_BASE_URL", "https://pub-1ccd4de4be1c4425b05bfbbde47ef4e5.r2.dev")),
+		R2CustomDomain:    getEnv("R2_CUSTOM_DOMAIN", "ganeshshah.com"),
 	}
 
 	if cfg.Env == "production" {

@@ -104,8 +104,23 @@ func (h *Handler) UploadLogo(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if req.CloudURL != "" {
+			if h.service.tenantService != nil {
+				_, _ = h.service.tenantService.UpdateSettingsSection(r.Context(), tenantID, "branding", map[string]any{
+					"logoUrl":  req.CloudURL,
+					"logo_url": req.CloudURL,
+				})
+			}
+			httpx.JSON(w, http.StatusOK, &LogoUploadResponse{
+				URL:         req.CloudURL,
+				Filename:    req.Filename,
+				ContentType: "image/png",
+			})
+			return
+		}
+
 		if req.DataURI == "" {
-			httpx.Error(w, http.StatusBadRequest, "MISSING_DATA", "data_uri field is required")
+			httpx.Error(w, http.StatusBadRequest, "MISSING_DATA", "data_uri or cloud_url field is required")
 			return
 		}
 

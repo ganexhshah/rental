@@ -24,12 +24,14 @@ import (
 	"github.com/rental/backend/internal/tenant"
 	"github.com/rental/backend/internal/vehicle"
 	"github.com/rental/backend/pkg/pagination"
+	"github.com/rental/backend/pkg/storage"
 )
 
 type Service struct {
 	pool           *pgxpool.Pool
 	tenantService  *tenant.Service
 	vehicleService *vehicle.Service
+	storage        storage.ObjectStorage
 	baseDir        string
 	baseURL        string
 	mu             sync.Mutex
@@ -39,6 +41,7 @@ func NewService(
 	pool *pgxpool.Pool,
 	tenantService *tenant.Service,
 	vehicleService *vehicle.Service,
+	store storage.ObjectStorage,
 	baseDir string,
 	baseURL string,
 ) *Service {
@@ -51,6 +54,7 @@ func NewService(
 		pool:           pool,
 		tenantService:  tenantService,
 		vehicleService: vehicleService,
+		storage:        store,
 		baseDir:        baseDir,
 		baseURL:        strings.TrimRight(baseURL, "/"),
 	}
@@ -173,11 +177,19 @@ func (s *Service) UploadLogo(ctx context.Context, tenantID uuid.UUID, originalFi
 	safeName := fmt.Sprintf("logo-%s-%d%s", tenantID.String(), time.Now().UnixNano(), ext)
 	targetPath := filepath.Join(logosDir, safeName)
 
-	if err := os.WriteFile(targetPath, data, 0644); err != nil {
-		return nil, fmt.Errorf("failed to save logo file: %w", err)
-	}
+	_ = os.WriteFile(targetPath, data, 0644)
 
-	publicURL := fmt.Sprintf("%s/uploads/logos/%s", s.baseURL, safeName)
+	var publicURL string
+	if s.storage != nil {
+		cloudKey := fmt.Sprintf("logos/%s", safeName)
+		cloudURL, err := s.storage.Upload(ctx, cloudKey, data, contentType)
+		if err == nil && cloudURL != "" {
+			publicURL = cloudURL
+		}
+	}
+	if publicURL == "" {
+		publicURL = fmt.Sprintf("%s/uploads/logos/%s", s.baseURL, safeName)
+	}
 
 	// Persist to tenant branding settings
 	if s.tenantService != nil {

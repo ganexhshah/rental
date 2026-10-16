@@ -1,5 +1,6 @@
 import { apiGet, apiPost, apiClient } from '@/lib/api/client'
 import { mockDb } from '@/lib/api/mockDb'
+import { uploadToR2 } from '@/lib/storage/r2'
 
 export interface PrimaryBranchPayload {
   name: string
@@ -116,6 +117,30 @@ export const onboardingApi = {
   },
 
   uploadLogo: async (file: File): Promise<LogoUploadResponse> => {
+    // 1. First attempt direct upload to Cloudflare R2
+    try {
+      const ext = file.name.split('.').pop() || 'png'
+      const key = `logos/${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${ext}`
+      const cloudRes = await uploadToR2(file, key, file.type)
+      if (cloudRes?.url) {
+        // Sync cloud url with backend tenant branding
+        await apiPost<any>('/onboarding/upload-logo', {
+          cloud_url: cloudRes.url,
+          filename: file.name,
+        }).catch(() => null)
+
+        return {
+          url: cloudRes.url,
+          filename: file.name,
+          size: file.size,
+          content_type: file.type,
+        }
+      }
+    } catch (r2Err) {
+      console.warn('Direct R2 client upload error, attempting backend upload:', r2Err)
+    }
+
+    // 2. Server upload fallback (backend will also save to Cloudflare R2)
     const formData = new FormData()
     formData.append('logo', file)
 

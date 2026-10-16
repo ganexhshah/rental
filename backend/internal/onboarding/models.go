@@ -65,5 +65,6 @@ type LogoUploadResponse struct {
 type Base64LogoRequest struct {
 	DataURI  string `json:"data_uri"`  // e.g. "data:image/png;base64,..."
 	Filename string `json:"filename"`  // optional filename
+	CloudURL string `json:"cloud_url"`  // optional direct cloud URL
 }
 

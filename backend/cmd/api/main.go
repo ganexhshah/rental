@@ -29,6 +29,7 @@ import (
 	"github.com/rental/backend/internal/report"
 	"github.com/rental/backend/internal/subscription"
 	"github.com/rental/backend/internal/tenant"
+	"github.com/rental/backend/internal/upload"
 	"github.com/rental/backend/internal/user"
 	"github.com/rental/backend/internal/vehicle"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -183,8 +184,30 @@ func main() {
 		log.Warn("local object storage init warning", "error", err)
 	}
 
-	docService := document.NewService(pool, localStorage)
-	docHandler := document.NewHandler(docService, localStorage)
+	cloudStorage := storage.NewR2Storage(storage.R2Config{
+		AccountID:       cfg.R2AccountID,
+		AccessKeyID:     cfg.R2AccessKeyID,
+		SecretAccessKey: cfg.R2SecretAccessKey,
+		BucketName:      cfg.R2BucketName,
+		Endpoint:        cfg.R2Endpoint,
+		PublicURL:       cfg.R2PublicURL,
+		CustomDomain:    cfg.R2CustomDomain,
+		Region:          "auto",
+	}, localStorage)
+
+	if cloudStorage.IsConfigured() {
+		log.Info("cloud object storage configured and active",
+			"bucket", cfg.R2BucketName,
+			"public_url", cfg.R2PublicURL,
+			"endpoint", cfg.R2Endpoint)
+	} else {
+		log.Warn("cloud object storage credentials not found, using local storage fallback")
+	}
+
+	uploadHandler := upload.NewHandler(cloudStorage)
+
+	docService := document.NewService(pool, cloudStorage)
+	docHandler := document.NewHandler(docService, cloudStorage)
 
 	contractService := contract.NewService(pool, docService)
 	contractHandler := contract.NewHandler(contractService)
@@ -204,7 +227,7 @@ func main() {
 	notificationService := notification.NewService(pool)
 	notificationHandler := notification.NewHandler(notificationService)
 
-	reportService := report.NewService(pool, docService, localStorage)
+	reportService := report.NewService(pool, docService, cloudStorage)
 	reportHandler := report.NewHandler(reportService)
 
 	subscriptionService := subscription.NewService(pool)
@@ -215,10 +238,16 @@ func main() {
 
 	publicHandler := public.NewHandler(pool, tenantService, bookingService)
 
-	onboardingService := onboarding.NewService(pool, tenantService, vehicleService, "./uploads", "http://localhost:"+cfg.Port)
+	onboardingService := onboarding.NewService(pool, tenantService, vehicleService, cloudStorage, "./uploads", "http://localhost:"+cfg.Port)
 	onboardingHandler := onboarding.NewHandler(onboardingService)
 
-	// Serve Static Uploads (logos, vehicle photos, attachments)
+	// Top-level direct Cloud Upload endpoint (Cloudflare R2 / S3)
+	r.Post("/api/upload-to-r2", uploadHandler.Upload)
+	r.Put("/api/upload-to-r2", uploadHandler.Upload)
+	r.Post("/api/v1/upload", uploadHandler.Upload)
+	r.Put("/api/v1/upload", uploadHandler.Upload)
+
+	// Serve Static Uploads (logos, vehicle photos, attachments fallback)
 	_ = os.MkdirAll("./uploads/logos", 0755)
 	r.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
