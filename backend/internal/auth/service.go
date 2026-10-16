@@ -21,6 +21,7 @@ var (
 
 type TenantRegistrar interface {
 	RegisterInMemoryTenant(id uuid.UUID, name, slug, currency, symbol, timezone string)
+	GetInMemoryTenantInfo(id uuid.UUID) (name, slug, currency, symbol, timezone, plan, status, logoURL string, ok bool)
 }
 
 type Service struct {
@@ -328,6 +329,26 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken string) (*Token
 
 func (s *Service) GetMe(ctx context.Context, userID, tenantID uuid.UUID) (*AuthResponse, error) {
 	if s.pool == nil {
+		name := "Rental Fleet Co."
+		slug := "rental-fleet"
+		cur := s.cfg.DefaultCurrency
+		sym := s.cfg.DefaultCurrencySymbol
+		tz := s.cfg.Timezone
+		plan := "enterprise"
+		status := "active"
+		logoURL := ""
+		if s.tenantReg != nil {
+			if n, sl, c, symVal, tzone, p, st, l, ok := s.tenantReg.GetInMemoryTenantInfo(tenantID); ok {
+				name = n
+				slug = sl
+				cur = c
+				sym = symVal
+				tz = tzone
+				plan = p
+				status = st
+				logoURL = l
+			}
+		}
 		return &AuthResponse{
 			User: UserDTO{
 				ID:        userID,
@@ -340,13 +361,14 @@ func (s *Service) GetMe(ctx context.Context, userID, tenantID uuid.UUID) (*AuthR
 			},
 			Tenant: TenantDTO{
 				ID:             tenantID,
-				Name:           "Himalayan Rides Nepal Pvt. Ltd.",
-				Slug:           "himalayan-rides",
-				Currency:       s.cfg.DefaultCurrency,
-				CurrencySymbol: s.cfg.DefaultCurrencySymbol,
-				Timezone:       s.cfg.Timezone,
-				Plan:           "enterprise",
-				Status:         "active",
+				Name:           name,
+				Slug:           slug,
+				Currency:       cur,
+				CurrencySymbol: sym,
+				Timezone:       tz,
+				Plan:           plan,
+				Status:         status,
+				LogoURL:        logoURL,
 			},
 		}, nil
 	}
@@ -356,7 +378,8 @@ func (s *Service) GetMe(ctx context.Context, userID, tenantID uuid.UUID) (*AuthR
 	query := `
 		SELECT 
 			u.id, u.email, u.full_name, COALESCE(u.phone, ''), u.role, u.status, COALESCE(u.avatar_url, ''), u.created_at,
-			t.id, t.name, t.slug, t.currency, t.currency_symbol, t.timezone, t.plan, t.status
+			t.id, t.name, t.slug, t.currency, t.currency_symbol, t.timezone, t.plan, t.status,
+			COALESCE(t.settings->'branding'->>'logoUrl', t.settings->'branding'->>'logo_url', '')
 		FROM users u
 		JOIN tenants t ON t.id = u.tenant_id
 		WHERE u.id = $1 AND t.id = $2
@@ -365,6 +388,7 @@ func (s *Service) GetMe(ctx context.Context, userID, tenantID uuid.UUID) (*AuthR
 	err := s.pool.QueryRow(ctx, query, userID, tenantID).Scan(
 		&user.ID, &user.Email, &user.FullName, &user.Phone, &user.Role, &user.Status, &user.AvatarURL, &user.CreatedAt,
 		&tenant.ID, &tenant.Name, &tenant.Slug, &tenant.Currency, &tenant.CurrencySymbol, &tenant.Timezone, &tenant.Plan, &tenant.Status,
+		&tenant.LogoURL,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("user profile not found: %w", err)

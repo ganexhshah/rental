@@ -51,4 +51,5 @@ type TenantDTO struct {
 	Timezone       string    `json:"timezone"`
 	Plan           string    `json:"plan"`
 	Status         string    `json:"status"`
+	LogoURL        string    `json:"logo_url,omitempty"`
 }

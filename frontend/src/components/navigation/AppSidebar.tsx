@@ -58,6 +58,29 @@ export const AppSidebar: React.FC = () => {
     refetchInterval: 30000,
   })
 
+  const { data: tenantData } = useQuery({
+    queryKey: ['sidebar', 'tenant'],
+    queryFn: async () => {
+      try {
+        const res = await apiGet<any>('/tenants/current')
+        return res
+      } catch {
+        return null
+      }
+    },
+    staleTime: 30000,
+  })
+
+  const currentLogoUrl =
+    tenant?.logoUrl ||
+    tenantData?.logo_url ||
+    tenantData?.logoUrl ||
+    tenantData?.settings?.branding?.logoUrl ||
+    tenantData?.settings?.branding?.logo_url ||
+    ''
+
+  const currentCompanyName = tenant?.name || tenantData?.name || 'Rental Workspace'
+
   const menuConfig: MenuItem[] = useMemo(
     () => [
       {
@@ -309,25 +332,30 @@ export const AppSidebar: React.FC = () => {
         if (isDrawer) setMobileOpen(false)
       }}
     >
-      {tenant?.logoUrl ? (
+      {currentLogoUrl ? (
         <img
-          src={tenant.logoUrl}
-          alt={tenant.name}
+          src={currentLogoUrl}
+          alt={currentCompanyName}
           style={{
-            width: 32,
-            height: 32,
+            width: 38,
+            height: 38,
             borderRadius: 8,
-            objectFit: 'cover',
+            objectFit: 'contain',
             backgroundColor: '#ffffff',
             border: `1px solid ${token.colorBorderSecondary}`,
             flexShrink: 0,
+            padding: 2,
+            boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+          }}
+          onError={(e) => {
+            ;(e.target as HTMLElement).style.display = 'none'
           }}
         />
       ) : (
         <div
           style={{
-            width: 32,
-            height: 32,
+            width: 38,
+            height: 38,
             borderRadius: 8,
             backgroundColor: token.colorPrimary || '#1677ff',
             display: 'flex',
@@ -339,13 +367,13 @@ export const AppSidebar: React.FC = () => {
             flexShrink: 0,
           }}
         >
-          {tenant?.name ? tenant.name.trim().charAt(0).toUpperCase() : 'R'}
+          {currentCompanyName.trim().charAt(0).toUpperCase()}
         </div>
       )}
       {(!collapsed || isDrawer) && (
         <div style={{ marginLeft: 12, overflow: 'hidden' }}>
           <div style={{ fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', color: token.colorText }}>
-            {tenant?.name || 'Rider zone'}
+            {currentCompanyName}
           </div>
           <div style={{ fontSize: 11, color: token.colorTextTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
             {tenant?.plan ? `${tenant.plan} Edition` : 'Fleet Operations'}

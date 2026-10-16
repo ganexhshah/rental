@@ -160,6 +160,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => {
             currencySymbol: res.tenant?.currency_symbol || 'Rs.',
             plan: res.tenant?.plan || 'enterprise',
             timezone: res.tenant?.timezone || 'Asia/Kathmandu',
+            logoUrl: res.tenant?.logo_url || res.tenant?.logoUrl || get().tenant.logoUrl,
           }
           localStorage.setItem(AUTH_USER_KEY, JSON.stringify(liveUser))
           localStorage.setItem(AUTH_TENANT_KEY, liveTenant.id)

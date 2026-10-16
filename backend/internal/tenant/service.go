@@ -45,6 +45,20 @@ func (s *Service) RegisterInMemoryTenant(id uuid.UUID, name, slug, currency, sym
 	}
 }
 
+func (s *Service) GetInMemoryTenantInfo(id uuid.UUID) (name, slug, currency, symbol, timezone, plan, status, logoURL string, ok bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	t, found := s.inMemoryTenants[id]
+	if !found || t == nil {
+		return "", "", "", "", "", "", "", "", false
+	}
+	logo := t.LogoURL
+	if logo == "" {
+		logo = t.GetLogoURL()
+	}
+	return t.Name, t.Slug, t.Currency, t.CurrencySymbol, t.Timezone, t.Plan, t.Status, logo, true
+}
+
 func (s *Service) GetCurrentTenant(ctx context.Context, tenantID uuid.UUID) (*Tenant, error) {
 	if s.pool == nil {
 		s.mu.Lock()
@@ -53,6 +67,9 @@ func (s *Service) GetCurrentTenant(ctx context.Context, tenantID uuid.UUID) (*Te
 			s.inMemoryTenants = make(map[uuid.UUID]*Tenant)
 		}
 		if t, ok := s.inMemoryTenants[tenantID]; ok {
+			if t.LogoURL == "" {
+				t.LogoURL = t.GetLogoURL()
+			}
 			return t, nil
 		}
 		t := &Tenant{
@@ -83,6 +100,10 @@ func (s *Service) GetCurrentTenant(ctx context.Context, tenantID uuid.UUID) (*Te
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tenant: %w", err)
+	}
+
+	if t.LogoURL == "" {
+		t.LogoURL = t.GetLogoURL()
 	}
 
 	return &t, nil
@@ -259,6 +280,14 @@ func (s *Service) UpdateSettingsSection(ctx context.Context, tenantID uuid.UUID,
 		currentSection[k] = v
 	}
 	settingsMap[section] = currentSection
+
+	if section == "branding" {
+		if logo, ok := values["logoUrl"].(string); ok && logo != "" {
+			t.LogoURL = logo
+		} else if logo, ok := values["logo_url"].(string); ok && logo != "" {
+			t.LogoURL = logo
+		}
+	}
 
 	rawBytes, err := json.Marshal(settingsMap)
 	if err != nil {
