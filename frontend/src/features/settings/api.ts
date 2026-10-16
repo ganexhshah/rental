@@ -325,4 +325,21 @@ export const settingsApi = {
     }
     return hours
   },
+
+  updateUserProfile: async (data: {
+    fullName?: string
+    phone?: string
+    avatarUrl?: string
+    currentPassword?: string
+    newPassword?: string
+  }): Promise<any> => {
+    const payload: any = {}
+    if (data.fullName !== undefined) payload.full_name = data.fullName
+    if (data.phone !== undefined) payload.phone = data.phone
+    if (data.avatarUrl !== undefined) payload.avatar_url = data.avatarUrl
+    if (data.currentPassword) payload.current_password = data.currentPassword
+    if (data.newPassword) payload.new_password = data.newPassword
+
+    return await apiPatch<any>('/auth/profile', payload)
+  },
 }

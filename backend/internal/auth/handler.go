@@ -29,6 +29,8 @@ func (h *Handler) Routes() chi.Router {
 	r.Group(func(protected chi.Router) {
 		protected.Use(RequireAuth(h.jwtSecret))
 		protected.Get("/me", h.GetMe)
+		protected.Patch("/profile", h.UpdateProfile)
+		protected.Put("/profile", h.UpdateProfile)
 	})
 
 	return r
@@ -127,4 +129,26 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httpx.JSON(w, http.StatusOK, res)
+}
+
+func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	user, ok := FromContext(r.Context())
+	if !ok {
+		httpx.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "Authentication required")
+		return
+	}
+
+	var req UpdateProfileRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httpx.Error(w, http.StatusBadRequest, "INVALID_JSON", "Failed to parse JSON body")
+		return
+	}
+
+	updated, err := h.service.UpdateProfile(r.Context(), user.UserID, user.TenantID, req)
+	if err != nil {
+		httpx.Error(w, http.StatusBadRequest, "UPDATE_FAILED", err.Error())
+		return
+	}
+
+	httpx.JSON(w, http.StatusOK, updated)
 }

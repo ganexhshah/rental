@@ -25,6 +25,14 @@ type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
 }
 
+type UpdateProfileRequest struct {
+	FullName        *string `json:"full_name,omitempty"`
+	Phone           *string `json:"phone,omitempty"`
+	AvatarURL       *string `json:"avatar_url,omitempty"`
+	CurrentPassword *string `json:"current_password,omitempty"`
+	NewPassword     *string `json:"new_password,omitempty"`
+}
+
 type AuthResponse struct {
 	User         UserDTO   `json:"user"`
 	Tenant       TenantDTO `json:"tenant"`

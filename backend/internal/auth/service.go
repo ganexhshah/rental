@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rental/backend/pkg/config"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -399,3 +400,69 @@ func (s *Service) GetMe(ctx context.Context, userID, tenantID uuid.UUID) (*AuthR
 		Tenant: tenant,
 	}, nil
 }
+
+func (s *Service) UpdateProfile(ctx context.Context, userID, tenantID uuid.UUID, req UpdateProfileRequest) (*UserDTO, error) {
+	if s.pool == nil {
+		user := &UserDTO{
+			ID:        userID,
+			Email:     "hello.ganeshshah@gmail.com",
+			FullName:  "Ganesh Shah",
+			Phone:     "+977 9800000000",
+			Role:      "admin",
+			Status:    "active",
+			CreatedAt: time.Now().UTC(),
+		}
+		if req.FullName != nil && *req.FullName != "" {
+			user.FullName = *req.FullName
+		}
+		if req.Phone != nil {
+			user.Phone = *req.Phone
+		}
+		if req.AvatarURL != nil {
+			user.AvatarURL = *req.AvatarURL
+		}
+		return user, nil
+	}
+
+	// Verify current password if changing password
+	if req.NewPassword != nil && *req.NewPassword != "" {
+		if req.CurrentPassword == nil || *req.CurrentPassword == "" {
+			return nil, errors.New("current password is required to change password")
+		}
+		var currentHash string
+		err := s.pool.QueryRow(ctx, "SELECT password_hash FROM users WHERE id = $1 AND tenant_id = $2", userID, tenantID).Scan(&currentHash)
+		if err != nil {
+			return nil, fmt.Errorf("user not found: %w", err)
+		}
+		if err := bcrypt.CompareHashAndPassword([]byte(currentHash), []byte(*req.CurrentPassword)); err != nil {
+			return nil, errors.New("current password is incorrect")
+		}
+		newHash, err := bcrypt.GenerateFromPassword([]byte(*req.NewPassword), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, fmt.Errorf("failed to hash new password: %w", err)
+		}
+		_, err = s.pool.Exec(ctx, "UPDATE users SET password_hash = $1 WHERE id = $2 AND tenant_id = $3", string(newHash), userID, tenantID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update password: %w", err)
+		}
+	}
+
+	query := `
+		UPDATE users
+		SET full_name = COALESCE($1, full_name),
+		    phone = COALESCE($2, phone),
+		    avatar_url = COALESCE($3, avatar_url),
+		    updated_at = NOW()
+		WHERE id = $4 AND tenant_id = $5
+		RETURNING id, email, full_name, COALESCE(phone, ''), role, status, COALESCE(avatar_url, ''), created_at
+	`
+	var u UserDTO
+	err := s.pool.QueryRow(ctx, query, req.FullName, req.Phone, req.AvatarURL, userID, tenantID).Scan(
+		&u.ID, &u.Email, &u.FullName, &u.Phone, &u.Role, &u.Status, &u.AvatarURL, &u.CreatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update profile: %w", err)
+	}
+	return &u, nil
+}
+
